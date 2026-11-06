@@ -253,6 +253,7 @@ class Player {
     }
     this.hp -= dmg;
     this.hurtFlash = 0.25;
+    Mobile.buzz(o.heavy ? 70 : 35);
     FX.slash(chest.x, chest.y, -fromDir, 14 + dmg * 0.4);
     Sfx.play('hurt'); Sfx.play('splat');
     FX.addShake(o.heavy ? 10 : 6); FX.addHitstop(0.06);

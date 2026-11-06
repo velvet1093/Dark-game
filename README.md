@@ -19,7 +19,27 @@ python3 -m http.server 8000   # then visit http://localhost:8000
 
 Progress is saved automatically (in `localStorage`) whenever you rest at a lantern shrine.
 
-## Controls
+## Mobile (main experience)
+
+Play in **landscape**. On a phone the game goes fullscreen on your first touch where the
+browser allows it, and a ⛶ button toggles it. In portrait you get a "turn your device" screen.
+
+| Control | Action |
+| --- | --- |
+| Drag anywhere on the left half | Walk (push to the rim to sprint, hold down for the Hamstring Cut) |
+| ⚔ ATTACK · ✦ HEAVY | Light chain · heavy attack |
+| ⟳ ROLL · ⛨ GUARD | Dodge roll · hold to block, tap just before a hit to parry |
+| ⚱ VIAL | Drink a vial (shows how many are left) |
+| ☠ EXECUTE | Appears and pulses red when a foe can be finished |
+| ✋ | Appears near people, notes and shrines (Speak / Read / Rest) |
+| ❚❚ | Pause; also leaves shrine menus and skips story screens |
+| Tap the screen | Continue dialogue and pick menu options |
+
+Hits and executions vibrate on phones that support it. On iPhone, Safari can't make a web
+page fullscreen. Use Share → Add to Home Screen to run it fullscreen from the home screen.
+Desktop browsers can force touch controls with `index.html?touch`.
+
+## Keyboard controls
 
 | Action | Keys |
 | --- | --- |
@@ -76,6 +96,7 @@ Four lore notes are hidden along the way, plus one more if you behead the Headsm
 index.html        canvas + script loading
 js/util.js        constants, math helpers, input (with press buffering)
 js/audio.js       WebAudio synthesized sound effects + ambience
+js/mobile.js      touch buttons, joystick, fullscreen, landscape lock, haptics
 js/rig.js         procedural skeleton, body/head/weapon drawing, severed parts
 js/weapons.js     WEAPON REGISTRY: movesets, executions, weapon art
 js/fx.js          blood particles, stains, gibs, sparks, fire, floating text

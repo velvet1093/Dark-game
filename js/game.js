@@ -20,7 +20,11 @@ const Game = {
     this.ctx = this.canvas.getContext('2d');
     this.resize();
     addEventListener('resize', () => this.resize());
+    addEventListener('orientationchange', () => setTimeout(() => this.resize(), 250));
+    if (window.visualViewport) visualViewport.addEventListener('resize', () => this.resize());
+    document.addEventListener('fullscreenchange', () => setTimeout(() => this.resize(), 100));
     Input.init(this.canvas);
+    Mobile.init(this.canvas);
     Scenery.build();
     Weather.init();
     this.player = new Player();
@@ -30,7 +34,9 @@ const Game = {
 
   resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const k = Math.min(innerWidth / W, innerHeight / H);
+    const vw = window.visualViewport ? visualViewport.width : innerWidth;
+    const vh = window.visualViewport ? visualViewport.height : innerHeight;
+    const k = Math.min(vw / W, vh / H);
     this.canvas.style.width = `${W * k}px`;
     this.canvas.style.height = `${H * k}px`;
     this.canvas.width = Math.round(W * k * dpr);
@@ -87,6 +93,11 @@ const Game = {
     if (Input.take('up')) { this.titleSel = (this.titleSel + opts.length - 1) % opts.length; Sfx.play('ui'); }
     if (Input.take('down')) { this.titleSel = (this.titleSel + 1) % opts.length; Sfx.play('ui'); }
     this.titleSel = clamp(this.titleSel, 0, opts.length - 1);
+    const tap = Mobile.takeTap();
+    if (tap) {
+      const i = Math.round((tap.y - 293) / 38);
+      if (i >= 0 && i < opts.length && Math.abs(tap.x - (W / 2 + 120)) < 170) this.titleSel = i;
+    }
     if (Input.take('confirm')) { Sfx.play('confirm'); Input.clear(); opts[this.titleSel].fn(); }
   },
 
@@ -225,7 +236,7 @@ const Game = {
     }
     // tutorial hints
     LEVEL.hints.forEach((h, i) => {
-      if (!this.hintsShown.has(i) && p.x > h.x) { this.hintsShown.add(i); this.toast(h.text, 7); }
+      if (!this.hintsShown.has(i) && p.x > h.x) { this.hintsShown.add(i); this.toast(Mobile.enabled && h.touch ? h.touch : h.text, 7); }
     });
     // boss arena
     if (!this.flags.bossDead && !this.bossActive && p.x > LEVEL.bossGate + 14 && this.boss) this.startBossIntro();
@@ -340,6 +351,12 @@ const Game = {
     if (Input.take('up')) { m.sel = (m.sel + opts.length - 1) % opts.length; Sfx.play('ui'); }
     if (Input.take('down')) { m.sel = (m.sel + 1) % opts.length; Sfx.play('ui'); }
     const leave = () => { this.menu = null; this.state = 'play'; Input.clear(); };
+    const tap = Mobile.takeTap();
+    if (tap) {
+      const i = Math.round((tap.y - (H - 300) / 2 - 122) / 34);
+      const inRow = i >= 0 && i < opts.length && tap.x > 80 && tap.x < 440;
+      if (!inRow || i !== m.sel) { if (inRow) { m.sel = i; Sfx.play('ui'); } Input.clear(); return; }
+    }
     if (Input.take('back')) { leave(); return; }
     if (Input.take('confirm')) {
       const o = opts[m.sel];
@@ -357,6 +374,12 @@ const Game = {
   updatePause() {
     if (Input.take('up') || Input.take('down')) { this.pauseSel = 1 - this.pauseSel; Sfx.play('ui'); }
     if (Input.take('pause', 0.1)) { this.state = 'play'; Input.clear(); return; }
+    const tap = Mobile.takeTap();
+    if (tap) {
+      const i = Math.round((tap.y - 134) / 30);
+      if (i >= 0 && i < 2 && Math.abs(tap.x - W / 2) < 140) this.pauseSel = i;
+      else { Input.clear(); return; }
+    }
     if (Input.take('confirm')) {
       if (this.pauseSel === 0) { this.state = 'play'; Input.clear(); }
       else { this.saveGame(); this.state = 'title'; this.titleSel = 0; Input.clear(); }
@@ -562,6 +585,7 @@ const Game = {
   execStrike() {
     const x = this.exec, p = this.player, e = x.e, dir = p.facing;
     Sfx.play('execute'); Sfx.play('sever');
+    Mobile.buzz([40, 30, 80]);
     FX.addShake(14);
     this.slow = { t: 0.5, scale: 0.22 };
     p.blood = 1;
@@ -606,8 +630,8 @@ const Game = {
     const ctx = this.ctx;
     ctx.setTransform(this.scale, 0, 0, this.scale, 0, 0);
     ctx.imageSmoothingEnabled = true;
-    if (this.state === 'title') { UI.title(ctx, this); return; }
-    if (this.state === 'narration') { UI.narration(ctx, this); return; }
+    if (this.state === 'title') { UI.title(ctx, this); Mobile.sync(this); return; }
+    if (this.state === 'narration') { UI.narration(ctx, this); Mobile.sync(this); return; }
 
     const p = this.player, t = this.time;
     const sx = FX.shake ? rand(-FX.shake, FX.shake) : 0, sy = FX.shake ? rand(-FX.shake, FX.shake) * 0.6 : 0;
@@ -669,7 +693,7 @@ const Game = {
       if (ex) {
         const hy = ex.crippled ? GROUND - 60 : GROUND - ex.z - 128 * ex.s;
         UI.executeSigil(ctx, ex.x, hy, t);
-      } else if (this.interactTarget) {
+      } else if (this.interactTarget && !Mobile.enabled) {
         const it = this.interactTarget;
         UI.prompt(ctx, it.x, it.y, 'E', it.label, t);
       }
@@ -703,6 +727,7 @@ const Game = {
     if (this.state === 'pause') UI.pause(ctx, this);
     if (this.state === 'dead') UI.death(ctx, this);
     if (this.fadeAlpha > 0) { ctx.fillStyle = `rgba(0,0,0,${this.fadeAlpha})`; ctx.fillRect(0, 0, W, H); }
+    Mobile.sync(this);
   },
 };
 

@@ -29,24 +29,24 @@ const UI = {
     UI.bar(ctx, 28, 44, sw, 6, p.st / p.maxSt, '#4e7a3a', '#132010');
     // vials
     for (let i = 0; i < p.maxFlasks; i++) {
-      const x = 34 + i * 20, y = H - 40, full = i < p.flasks;
+      const x = 34 + i * 20, y = Mobile.enabled ? 74 : H - 40, full = i < p.flasks;
       ctx.fillStyle = full ? '#d7a85a' : '#2a2620';
       ctx.beginPath(); ctx.moveTo(x - 3, y - 10); ctx.lineTo(x + 3, y - 10); ctx.lineTo(x + 3, y - 5); ctx.lineTo(x + 7, y + 3); ctx.lineTo(x + 7, y + 10); ctx.lineTo(x - 7, y + 10); ctx.lineTo(x - 7, y + 3); ctx.lineTo(x - 3, y - 5); ctx.closePath(); ctx.fill();
       ctx.strokeStyle = '#5a5040'; ctx.lineWidth = 1; ctx.stroke();
       if (full) { ctx.fillStyle = 'rgba(255,240,200,0.4)'; ctx.fillRect(x - 5, y + 3, 3, 5); }
     }
-    UI.text(ctx, 'Q', 34 + p.maxFlasks * 20 + 4, H - 32, 11, '#7a6e5a', 'left');
+    if (!Mobile.enabled) UI.text(ctx, 'Q', 34 + p.maxFlasks * 20 + 4, H - 32, 11, '#7a6e5a', 'left');
     // weapon
-    UI.text(ctx, `${p.weapon.name} · ${p.weapon.kind}`, 28, H - 58, 12, '#8f8470', 'left', BODY_FONT);
+    if (!Mobile.enabled) UI.text(ctx, `${p.weapon.name} · ${p.weapon.kind}`, 28, H - 58, 12, '#8f8470', 'left', BODY_FONT);
     // embers
-    const ex = W - 30, ey = H - 34;
+    const ex = Mobile.enabled ? W - 150 : W - 30, ey = Mobile.enabled ? 40 : H - 34;
     ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(ex - 130, ey - 20, 136, 30);
     ctx.strokeStyle = 'rgba(160,140,110,0.35)'; ctx.strokeRect(ex - 130, ey - 20, 136, 30);
     ctx.fillStyle = '#ffb35a'; ctx.beginPath(); ctx.arc(ex - 114, ey - 5, 5 + Math.sin(g.time * 4) * 0.8, 0, Math.PI * 2); ctx.fill();
     UI.text(ctx, String(Math.floor(g.emberDisplay)), ex - 2, ey + 1, 18, '#e8d9b0', 'right');
     // boss bar
     if (g.bossActive && g.boss && !g.boss.dead) {
-      const b = g.boss, bw = 560, bx = (W - bw) / 2, by = H - 52;
+      const b = g.boss, bw = Mobile.enabled ? 440 : 560, bx = (W - bw) / 2, by = Mobile.enabled ? 112 : H - 52;
       b.hpLag = b.hpLag === undefined ? b.hp : (b.hpLag > b.hp ? b.hpLag - (b.maxHp * 0.12) / 60 : b.hp);
       UI.text(ctx, b.def.name, bx, by - 8, 15, '#d8ccb0', 'left');
       UI.bar(ctx, bx, by, bw, 9, b.hp / b.maxHp, '#7e1010', '#200606', b.hpLag / b.maxHp);
@@ -67,7 +67,7 @@ const UI = {
       ctx.globalAlpha = 1;
     }
     // toasts
-    let ty = 86;
+    let ty = Mobile.enabled ? (g.bossActive ? 150 : 110) : 86;
     for (const t of g.toasts) {
       const a = t.t < 0.4 ? t.t / 0.4 : t.t > t.life - 0.6 ? (t.life - t.t) / 0.6 : 1;
       ctx.globalAlpha = clamp(a, 0, 1) * 0.95;
@@ -148,7 +148,7 @@ const UI = {
     ctx.font = `16px ${BODY_FONT}`;
     const lines = wrapText(ctx, n.text, pw - 70);
     lines.forEach((l, i) => UI.text(ctx, l, px + 35, py + 82 + i * 20, 16, '#2a1a12', 'left', BODY_FONT, false));
-    UI.text(ctx, '[E] close', W / 2, py + ph + 26, 12, '#9a8a6a');
+    UI.text(ctx, Mobile.enabled ? 'tap to close' : '[E] close', W / 2, py + ph + 26, 12, '#9a8a6a');
   },
 
   shrineMenu(ctx, g) {
@@ -169,7 +169,7 @@ const UI = {
       UI.text(ctx, (sel ? '›  ' : '   ') + o.label, px + 40, y, 16, o.disabled ? '#5a5244' : sel ? '#f0d8a0' : '#b8a888', 'left');
       if (o.value !== undefined) UI.text(ctx, String(o.value), px + pw - 40, y, 16, '#d0c0a0', 'right');
     });
-    UI.text(ctx, 'W/S select  ·  E confirm  ·  Esc leave', px + pw / 2, py + ph - 14, 11, '#6a604c', 'center', BODY_FONT);
+    UI.text(ctx, Mobile.enabled ? 'tap to select, tap again to confirm  ·  ❚❚ leave' : 'W/S select  ·  E confirm  ·  Esc leave', px + pw / 2, py + ph - 14, 11, '#6a604c', 'center', BODY_FONT);
     // stats panel
     const sx = px + pw + 20, sy = py;
     ctx.fillStyle = 'rgba(10,7,6,0.85)'; ctx.fillRect(sx, sy, 230, 170);
@@ -192,6 +192,10 @@ const UI = {
       ['Hold L  /  C', 'Guard  (tap just before a hit to parry)'], ['F', 'Execute a weakened foe'],
       ['Q', 'Drink a vial'], ['E', 'Interact / rest'], ['M', 'Mute'], ['Esc', 'Pause'],
     ];
+    if (Mobile.enabled) ctl.splice(0, ctl.length,
+      ['Left stick', 'Walk  (push to the rim to sprint)'], ['⟳ ROLL', 'Roll — invulnerable mid-roll'], ['⚔ ATTACK', 'Attack (3-hit chain)'],
+      ['✦ HEAVY', 'Heavy attack'], ['Stick down + ⚔', 'Hamstring Cut (cripple)'], ['⛨ GUARD', 'Hold to block, tap to parry'],
+      ['☠ EXECUTE', 'Finish a weakened foe'], ['⚱ VIAL', 'Drink a vial'], ['✋', 'Speak / read / rest'], ['⛶', 'Fullscreen'], ['❚❚', 'Pause'], ['Tap', 'Continue dialogue']);
     ctl.forEach((c, i) => {
       const col = i < 6 ? 0 : 1;
       const x = col ? W / 2 + 40 : 140, y = 240 + (i % 6) * 32;
@@ -215,7 +219,7 @@ const UI = {
       UI.text(ctx, l, W / 2, H / 2 - total / 2 + i * 32 + 16, big ? 34 : 22, big ? '#b8261c' : '#d6c9ae', 'center', big ? TITLE_FONT : BODY_FONT);
     });
     ctx.globalAlpha = 1;
-    UI.text(ctx, 'E / Enter — continue      Esc — skip', W / 2, H - 30, 11, 'rgba(140,125,100,0.6)', 'center', BODY_FONT);
+    UI.text(ctx, Mobile.enabled ? 'tap to continue      ❚❚ to skip' : 'E / Enter — continue      Esc — skip', W / 2, H - 30, 11, 'rgba(140,125,100,0.6)', 'center', BODY_FONT);
   },
 
   death(ctx, g) {
@@ -230,7 +234,7 @@ const UI = {
     ctx.save(); ctx.translate(W / 2, H / 2 + 14); ctx.scale(sc, sc);
     UI.text(ctx, 'THY OATH IS BROKEN', 0, 0, 52, '#9a1410');
     ctx.restore();
-    if (t > 3) UI.text(ctx, 'press E to rise again', W / 2, H / 2 + 60, 13, '#8a7a62', 'center', BODY_FONT);
+    if (t > 3) UI.text(ctx, Mobile.enabled ? 'tap to rise again' : 'press E to rise again', W / 2, H / 2 + 60, 13, '#8a7a62', 'center', BODY_FONT);
     ctx.globalAlpha = 1;
   },
 
@@ -278,7 +282,7 @@ const UI = {
       const sel = i === g.titleSel;
       UI.text(ctx, (sel ? '›  ' : '') + o.label + (sel ? '  ‹' : ''), W / 2 + 120, 300 + i * 38, sel ? 22 : 19, sel ? '#f0d8a0' : '#7d715c');
     });
-    UI.text(ctx, 'W/S select · Enter confirm · best with sound on', W / 2 + 120, H - 26, 12, '#5a5040', 'center', BODY_FONT);
+    UI.text(ctx, Mobile.enabled ? 'tap to begin · play in landscape · best with sound on' : 'W/S select · Enter confirm · best with sound on', W / 2 + 120, H - 26, 12, '#5a5040', 'center', BODY_FONT);
     Weather.draw(ctx, 1 / 60, 0, 0);
   },
 };
