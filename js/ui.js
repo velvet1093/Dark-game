@@ -175,6 +175,26 @@ const UI = {
     UI.text(ctx, Mobile.enabled ? 'tap to close' : '[E] close', W / 2, py + ph + 26, 12, '#9a8a6a');
   },
 
+  // knight skin picker (title or pause)
+  skins(ctx, g) {
+    ctx.fillStyle = 'rgba(6,4,6,0.94)'; ctx.fillRect(0, 0, W, H);
+    UI.text(ctx, 'APPEARANCE', W / 2, 62, 28, '#d8c8a4');
+    UI.text(ctx, 'Choose how Sir Aldric looks. Purely cosmetic.', W / 2, 86, 13, '#8a7c62', 'center', BODY_FONT);
+    const px = 90, py = 120;
+    SKIN_ORDER.forEach((id, i) => {
+      const y = py + i * 40, sel = i === g.skinSel, on = Skins.id === id;
+      if (sel) { ctx.fillStyle = 'rgba(160,110,50,0.18)'; ctx.fillRect(px - 14, y - 24, 330, 34); }
+      UI.text(ctx, (sel ? '›  ' : '   ') + SKINS[id].name, px, y, 18, sel ? '#f0d8a0' : '#b8a888', 'left');
+      if (on) UI.text(ctx, 'worn', px + 300, y, 12, '#c9a35a', 'right');
+    });
+    const id = SKIN_ORDER[g.skinSel];
+    ctx.fillStyle = 'rgba(255,255,255,0.03)'; ctx.fillRect(500, 110, 380, 330);
+    drawSkinPreview(ctx, id, g.time, 680, 400, 2.6);
+    ctx.font = `13px ${BODY_FONT}`;
+    wrapText(ctx, SKINS[id].desc, 360).forEach((l, i) => UI.text(ctx, l, 690, 462 + i * 17, 13, '#bfb59d', 'center', BODY_FONT));
+    UI.text(ctx, Mobile.enabled ? 'tap a name to wear it  ·  ❚❚ back' : 'W/S choose  ·  E wear  ·  Esc back', W / 2, H - 14, 11, '#6a604c', 'center', BODY_FONT);
+  },
+
   serviceMenu(ctx, g) {
     const info = g.serviceInfo(), sv = g.service;
     ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, 0, W, H);
@@ -233,7 +253,7 @@ const UI = {
       return;
     }
     UI.text(ctx, 'PAUSED', W / 2, 90, 36, '#d8c8a4');
-    const opts = ['Resume', 'Journal', 'Quit to Title'];
+    const opts = ['Resume', 'Journal', 'Appearance', 'Quit to Title'];
     opts.forEach((o, i) => UI.text(ctx, (i === g.pauseSel ? '›  ' : '') + o, W / 2, 140 + i * 30, 18, i === g.pauseSel ? '#f0d8a0' : '#8a7c62'));
     const ctl = [
       ['A / D', 'Move'], ['Shift', 'Sprint'], ['Space', 'Roll (invulnerable mid-roll)'],
@@ -247,7 +267,7 @@ const UI = {
       ['☠ EXECUTE', 'Finish a weakened foe'], ['⚱ VIAL', 'Drink a vial'], ['✚ TONIC', 'Purge infection'], ['✋', 'Speak / read / rest'], ['⛶  ❚❚', 'Fullscreen · pause'], ['Tap', 'Continue dialogue']);
     ctl.forEach((c, i) => {
       const col = i < 6 ? 0 : 1;
-      const x = col ? W / 2 + 40 : 140, y = 256 + (i % 6) * 30;
+      const x = col ? W / 2 + 40 : 140, y = 280 + (i % 6) * 29;
       UI.text(ctx, c[0], x, y, 14, '#c9a35a', 'left');
       UI.text(ctx, c[1], x + 150, y, 15, '#bfb59d', 'left', BODY_FONT);
     });
@@ -310,8 +330,9 @@ const UI = {
     const kp = basePose({ lean: 0.18 + Math.sin(t * 1.2) * 0.015, head: 0.35, armF: 1.3, elbowF: 0.35, armB: 1.2, elbowB: 0.6, weap: 0.0, legF: 1.25, kneeF: 2.5, legB: 0.1, kneeB: 2.2 });
     const kj = solveRig(kp);
     ctx.save(); ctx.translate(W / 2 - 180, H - 70); ctx.scale(2.1, 2.1);
-    const st = Object.assign({}, KNIGHT_STYLE);
+    const st = Object.assign({}, Skins.style());
     drawHumanoid(ctx, kj, kp, st, { head: true, armF: true, armB: true, legF: true, legB: true }, { weapon: c => WEAPONS.longsword.draw(c, 0.8), t, sway: 0.3 });
+    if (st.embers) drawEmberCracks(ctx, kj, t);
     ctx.restore();
     // title
     ctx.save();

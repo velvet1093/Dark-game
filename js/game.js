@@ -81,6 +81,7 @@ const Game = {
       case 'menu': this.updateMenu(); FX.update(dt); break;
       case 'service': this.updateService(); FX.update(dt); break;
       case 'pause': this.updatePause(); break;
+      case 'skins': this.updateSkins(); break;
       case 'dead': this.updateDead(dt); break;
       case 'cutscene': this.updateCutscene(dt); break;
     }
@@ -90,6 +91,7 @@ const Game = {
     const o = [];
     if (this.save) o.push({ label: 'Continue', fn: () => this.continueGame() });
     o.push({ label: 'New Game', fn: () => this.newGame() });
+    o.push({ label: 'Appearance', fn: () => this.openSkins('title') });
     return o;
   },
 
@@ -214,7 +216,7 @@ const Game = {
   updateMusic() {
     const s = this.state;
     let m = null;
-    if (s === 'title') m = 'title';
+    if (s === 'title' || (s === 'skins' && this.skinReturn === 'title')) m = 'title';
     else if (s === 'narration') m = this.narration && this.narration.lines === STORY.ending ? 'requiem' : 'title';
     else if (s === 'menu') m = 'shrine';
     else if (s === 'dead' || s === 'cutscene') m = null;
@@ -467,23 +469,43 @@ const Game = {
     }
   },
 
+  openSkins(ret) {
+    this.skinReturn = ret; this.skinSel = Math.max(0, SKIN_ORDER.indexOf(Skins.id));
+    this.state = 'skins'; Sfx.play('page'); Input.clear();
+  },
+  updateSkins() {
+    const n = SKIN_ORDER.length;
+    if (Input.take('up')) { this.skinSel = (this.skinSel + n - 1) % n; Sfx.play('ui'); }
+    if (Input.take('down')) { this.skinSel = (this.skinSel + 1) % n; Sfx.play('ui'); }
+    const back = () => { this.state = this.skinReturn; Input.clear(); };
+    const tap = Mobile.takeTap();
+    if (tap) {
+      const i = Math.round((tap.y - 113) / 40);
+      if (i >= 0 && i < n && tap.x > 60 && tap.x < 430) { this.skinSel = i; Skins.set(SKIN_ORDER[i]); Sfx.play('confirm'); }
+      Input.clear(); return;
+    }
+    if (Input.take('back') || Input.take('pause', 0.1)) { back(); return; }
+    if (Input.take('confirm')) { Skins.set(SKIN_ORDER[this.skinSel]); Sfx.play('confirm'); }
+  },
+
   updatePause() {
     if (this.pauseView === 'journal') {
       Mobile.takeTap();
       if (Input.take('confirm') || Input.take('back') || Input.take('pause', 0.1)) { this.pauseView = null; Sfx.play('ui'); }
       return;
     }
-    if (Input.take('up')) { this.pauseSel = (this.pauseSel + 2) % 3; Sfx.play('ui'); }
-    if (Input.take('down')) { this.pauseSel = (this.pauseSel + 1) % 3; Sfx.play('ui'); }
+    if (Input.take('up')) { this.pauseSel = (this.pauseSel + 3) % 4; Sfx.play('ui'); }
+    if (Input.take('down')) { this.pauseSel = (this.pauseSel + 1) % 4; Sfx.play('ui'); }
     if (Input.take('pause', 0.1)) { this.state = 'play'; Input.clear(); return; }
     const tap = Mobile.takeTap();
     if (tap) {
       const i = Math.round((tap.y - 134) / 30);
-      if (i >= 0 && i < 3 && Math.abs(tap.x - W / 2) < 140) this.pauseSel = i;
+      if (i >= 0 && i < 4 && Math.abs(tap.x - W / 2) < 140) this.pauseSel = i;
       else { Input.clear(); return; }
     }
     if (Input.take('confirm')) {
       if (this.pauseSel === 0) { this.state = 'play'; Input.clear(); }
+      else if (this.pauseSel === 2) { this.openSkins('pause'); }
       else if (this.pauseSel === 1) { this.pauseView = 'journal'; Sfx.play('page'); }
       else { this.saveGame(); this.state = 'title'; this.titleSel = 0; Input.clear(); }
     }
@@ -850,7 +872,7 @@ const Game = {
     const ctx = this.ctx;
     ctx.setTransform(this.scale, 0, 0, this.scale, 0, 0);
     ctx.imageSmoothingEnabled = true;
-    if (this.state === 'title') { UI.title(ctx, this); Mobile.sync(this); return; }
+    if (this.state === 'title' || (this.state === 'skins' && this.skinReturn === 'title')) { UI.title(ctx, this); if (this.state === 'skins') UI.skins(ctx, this); Mobile.sync(this); return; }
     if (this.state === 'narration') { UI.narration(ctx, this); Mobile.sync(this); return; }
 
     const p = this.player, t = this.time;
@@ -980,6 +1002,7 @@ const Game = {
     if (this.state === 'menu') UI.shrineMenu(ctx, this);
     if (this.state === 'service') UI.serviceMenu(ctx, this);
     if (this.state === 'pause') UI.pause(ctx, this);
+    if (this.state === 'skins') UI.skins(ctx, this);
     if (this.state === 'dead') UI.death(ctx, this);
     if (this.fadeAlpha > 0) { ctx.fillStyle = `rgba(0,0,0,${this.fadeAlpha})`; ctx.fillRect(0, 0, W, H); }
     Mobile.sync(this);

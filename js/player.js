@@ -408,10 +408,12 @@ class Player {
     }
     if (this.hurtFlash > 0) ctx.globalAlpha = 0.7 + Math.sin(this.hurtFlash * 60) * 0.3;
     const wp = this.weapon, blood = this.blood;
-    const kst = this.turning ? Object.assign({}, KNIGHT_STYLE, { visor: '#ff2a1a' }) : KNIGHT_STYLE;
+    const skin = Skins.style();
+    const kst = this.turning ? Object.assign({}, skin, { visor: '#ff2a1a' }) : skin;
     drawHumanoid(ctx, this.joints, this.pose, kst,
       { head: true, armF: true, armB: true, legF: true, legB: true },
       { weapon: c => wp.draw(c, blood), t, sway: clamp(this.vx / 240, -1, 1) * this.facing });
+    if (kst.embers) drawEmberCracks(ctx, this.joints, t);
     ctx.globalAlpha = 1;
     if (this.healGlow > 0) {
       ctx.globalCompositeOperation = 'lighter';

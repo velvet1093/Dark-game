@@ -86,6 +86,7 @@ function drawLeg(ctx, j, side, st) {
   const col = side === 'F' ? st.leg : st.legDark;
   seg(ctx, j.hip, knee, st.limbW + 1.5, col);
   seg(ctx, knee, foot, st.limbW, col);
+  if (st.wraps) seg(ctx, { x: lerp(knee.x, foot.x, 0.38), y: lerp(knee.y, foot.y, 0.38) }, { x: lerp(knee.x, foot.x, 0.58), y: lerp(knee.y, foot.y, 0.58) }, st.limbW + 0.8, side === 'F' ? st.wraps : st.wrapsDark || st.wraps);
   if (st.kneeCop) dot(ctx, knee, st.limbW * 0.55, side === 'F' ? st.armorLight : st.armor);
   boot(ctx, knee, foot, side === 'F' ? st.boot : st.bootDark);
 }
@@ -129,7 +130,7 @@ function drawTorso(ctx, j, st, lean) {
       ctx.beginPath(); ctx.moveTo(cx - nx * 7 - dx * 2, cy - ny * 7 - dy * 2); ctx.lineTo(cx + nx * 7 + dx * 2, cy + ny * 7 + dy * 2); ctx.stroke();
     }
   }
-  if (st.tabard) {
+  if (st.tabard && !st.tasset) {
     const w1 = st.shW * 0.55, w2 = st.hipW * 0.8 * (st.flare || 1), ext = st.tabardLen || 14;
     const bx = hip.x - dx * ext, by = hip.y - dy * ext;
     ctx.fillStyle = st.tabard;
@@ -151,6 +152,18 @@ function drawTorso(ctx, j, st, lean) {
       ctx.beginPath(); ctx.arc(ex, ey, 2.6, 0, Math.PI * 2); ctx.fill();
       ctx.fillRect(ex - 0.7, ey - 5.5, 1.4, 3);
     }
+  }
+  if (st.tasset) { // a cloth hanging from the belt only, over the thighs
+    const ext = st.tabardLen || 20, w = st.hipW * 0.62;
+    const tx = hip.x + dx * 2 + nx * 1.5, ty = hip.y + dy * 2 + ny * 1.5;
+    const bx = tx - dx * ext, by = ty - dy * ext;
+    ctx.fillStyle = st.tabard;
+    ctx.beginPath(); ctx.moveTo(tx - nx * w, ty - ny * w); ctx.lineTo(tx + nx * w, ty + ny * w);
+    ctx.lineTo(bx + nx * w * 1.1, by + ny * w * 1.1);
+    for (let i = 1; i < 6; i++) { const k = i / 6; ctx.lineTo(lerp(bx + nx * w * 1.1, bx - nx * w * 1.1, k) - dx * (i % 2 ? -2 : 0), lerp(by + ny * w * 1.1, by - ny * w * 1.1, k) - dy * (i % 2 ? -2 : 0)); }
+    ctx.lineTo(bx - nx * w * 1.1, by - ny * w * 1.1); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 0.6;
+    ctx.beginPath(); for (const k of [-0.4, 0.1, 0.5]) { ctx.moveTo(tx + nx * w * k, ty + ny * w * k); ctx.lineTo(bx + nx * w * k * 1.1, by + ny * w * k * 1.1); } ctx.stroke();
   }
   if (st.collar) { // white high collar and frilled bib
     const cx = lerp(hip.x, sh.x, 0.82), cy = lerp(hip.y, sh.y, 0.82);
@@ -195,11 +208,22 @@ function drawCloak(ctx, j, st, sway, t) {
   ctx.lineTo(hip.x - 4, -12);
   ctx.quadraticCurveTo(hip.x - 2, hip.y, sh.x + 3, sh.y + 2);
   ctx.closePath(); ctx.fill();
+  if (st.cloakFur) { // shaggy fur edge on a heavy cloak
+    ctx.strokeStyle = st.cloakFurCol || st.cloak; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    for (let i = 0; i < 9; i++) {
+      const k = i / 8, x = lerp(hip.x - 4, hip.x + back + flutter, k), y = lerp(-12, -6 + Math.abs(sway) * 6, k);
+      ctx.moveTo(x, y); ctx.lineTo(x - 2 - Math.sin(t * 5 + i) * 1.5, y + 5 + (i % 3));
+    }
+    ctx.stroke();
+  }
 }
 
 function drawHead(ctx, c, ang, st, t) {
   const r = RIG.headR;
   ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(ang);
+  // helms added by skins.js
+  if (typeof EXTRA_HELMS !== 'undefined' && EXTRA_HELMS[st.helm]) { EXTRA_HELMS[st.helm](ctx, st, t || 0, r); ctx.restore(); return; }
   switch (st.helm) {
     case 'knight': {
       if (st.crest) { // tattered crest cloth

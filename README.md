@@ -196,6 +196,23 @@ Three regions lead to a boss:
 
 Four lore notes are hidden along the way, plus one more if you behead the Headsman.
 
+## Knight skins
+
+Choose **Appearance** from the title screen or the pause menu to change how Sir Aldric
+looks. Skins are cosmetic and remembered on your device. The original Grey Lantern is the
+default.
+
+| Skin | Look |
+| --- | --- |
+| Grey Lantern | The original: great helm with a torn crest, grey tabard with the lantern sigil |
+| Plumed Vigil | Polished plate, a slatted close helm with a sea-glass plume, a fur mantle and cloak, red-wrapped greaves |
+| Mourning Knight | Black plate under a heavy hood and a ragged fur mantle |
+| Barrow Warden | Rust-dark iron, a T-slit barbute over a mail hood |
+| Ashborn | Charred plate split by glowing ember cracks |
+
+To add a skin, add an entry to `SKINS` in `js/skins.js` (a style object for the rig; new
+helm shapes go in `EXTRA_HELMS`) and list it in `SKIN_ORDER`.
+
 ## Project layout
 
 ```
@@ -207,6 +224,7 @@ js/rig.js         procedural skeleton, body/head/weapon drawing, severed parts
 js/weapons.js     WEAPON REGISTRY: movesets, executions, weapon art
 js/fx.js          blood particles, stains, gibs, sparks, fire, floating text
 js/player.js      the knight: movement, combat, guard/parry, rolls, vials
+js/skins.js       knight skins, extra helm shapes, the Appearance preview
 js/enemies.js     enemy types, AI, damage, bleeding, dismemberment, the boss
 js/world.js       level layout, zones, parallax scenery, props, weather
 js/story.js       narration, dialogue and lore notes
