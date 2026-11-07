@@ -237,7 +237,7 @@ default.
 | Mourning Knight | Black plate under a heavy hood and a ragged fur mantle |
 | Barrow Warden | Rust-dark iron, a T-slit barbute over a mail hood |
 | Ashborn | Charred plate split by glowing ember cracks |
-| Grimm | Inspired by *Black Souls*: a pointed closed helmet with cut visor vents, a torn streaming crest, layered moss-grey plate, and a broad shaggy fur mantle |
+| Mossbound | A pointed closed helmet with cut visor vents, a torn streaming crest, layered moss-grey plate, and a broad shaggy fur mantle |
 
 To add a skin, add an entry to `SKINS` in `js/skins.js` (a style object for the rig; new
 helm shapes go in `EXTRA_HELMS`) and list it in `SKIN_ORDER`.

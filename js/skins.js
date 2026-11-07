@@ -196,7 +196,7 @@ const EXTRA_HELMS = {
 
 const SKINS = {
   grimm: {
-    name: 'Grimm', desc: 'Black Souls inspired: a pointed closed helm, cut visor vents and a torn streaming crest. Layered moss-grey plate beneath a broad, shaggy fur mantle.',
+    name: 'Mossbound', desc: 'A pointed closed helm with cut visor vents and a torn streaming crest. Layered moss-grey plate beneath a broad, shaggy fur mantle, worn by a knight who has slept in the barrows too long.',
     style: Object.assign({}, KNIGHT_STYLE, {
       helm: 'grimm', grimm: true, fur: '#85897a', furLight: '#bec1aa',
       armor: '#899587', armorDark: '#46564a', armorLight: '#c5cbbb', body: '#667464',
