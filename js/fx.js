@@ -190,7 +190,7 @@ const FX = {
           ctx.globalAlpha *= 0.3; ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI * 2); ctx.fill();
           break;
         case 'fy': // fairy sparkle
-          ctx.globalAlpha = (1 - f) * (0.6 + Math.sin(p.t * 14 + p.ph) * 0.4); ctx.fillStyle = f < 0.4 ? '#ffffff' : '#c9b0ff';
+          ctx.globalAlpha = (1 - f) * (0.6 + Math.sin(p.t * 14 + p.ph) * 0.4); ctx.fillStyle = f < 0.4 ? '#ffffff' : (p.color || '#c9b0ff');
           ctx.fillRect(p.x - 0.8, p.y - 2.2, 1.6, 4.4); ctx.fillRect(p.x - 2.2, p.y - 0.8, 4.4, 1.6);
           break;
         case 'a':

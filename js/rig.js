@@ -86,6 +86,7 @@ function drawLeg(ctx, j, side, st) {
   const col = side === 'F' ? st.leg : st.legDark;
   seg(ctx, j.hip, knee, st.limbW + 1.5, col);
   seg(ctx, knee, foot, st.limbW, col);
+  if (st.grimm) { drawGrimmPlate(ctx, j.hip, knee, st.limbW + 2); drawGrimmPlate(ctx, knee, foot, st.limbW + 1); }
   if (st.wraps) seg(ctx, { x: lerp(knee.x, foot.x, 0.38), y: lerp(knee.y, foot.y, 0.38) }, { x: lerp(knee.x, foot.x, 0.58), y: lerp(knee.y, foot.y, 0.58) }, st.limbW + 0.8, side === 'F' ? st.wraps : st.wrapsDark || st.wraps);
   if (st.kneeCop) dot(ctx, knee, st.limbW * 0.55, side === 'F' ? st.armorLight : st.armor);
   boot(ctx, knee, foot, side === 'F' ? st.boot : st.bootDark);
@@ -95,14 +96,22 @@ function drawArm(ctx, j, side, st) {
   const col = side === 'F' ? st.armor : st.armorDark;
   seg(ctx, sh, el, st.limbW + 0.5, col);
   seg(ctx, el, hd, st.limbW - 0.5, col);
+  if (st.grimm) { drawGrimmPlate(ctx, sh, el, st.limbW + 2); drawGrimmPlate(ctx, el, hd, st.limbW + 1); }
   if (st.wounds) { // whip lashes on bare arms
     ctx.strokeStyle = '#6b0f0f'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(lerp(sh.x, el.x, 0.4) - 2, lerp(sh.y, el.y, 0.4)); ctx.lineTo(lerp(sh.x, el.x, 0.4) + 2, lerp(sh.y, el.y, 0.4) + 2); ctx.stroke();
   }
-  if (st.pauldron && side === 'F') {
+  if (st.pauldron && side === 'F' && !st.grimm) {
     ctx.fillStyle = st.armorLight;
     ctx.beginPath(); ctx.ellipse(sh.x, sh.y + 2, 7, 5.5, 0, Math.PI, 0); ctx.fill();
     ctx.fillStyle = st.armor; ctx.beginPath(); ctx.ellipse(sh.x, sh.y + 3, 7, 3, 0, 0, Math.PI); ctx.fill();
+  }
+  if (st.grimm && side === 'F') {
+    ctx.fillStyle = '#929b91'; ctx.strokeStyle = '#38453f'; ctx.lineWidth = 0.65;
+    ctx.beginPath(); ctx.moveTo(sh.x - 6, sh.y - 3); ctx.lineTo(sh.x + 3, sh.y - 5);
+    ctx.lineTo(sh.x + 9, sh.y + 2); ctx.lineTo(sh.x + 5, sh.y + 8);
+    ctx.lineTo(sh.x - 5, sh.y + 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#c5c9bb'; ctx.beginPath(); ctx.moveTo(sh.x - 4, sh.y - 2); ctx.lineTo(sh.x + 2, sh.y - 3); ctx.lineTo(sh.x + 7, sh.y + 2); ctx.stroke();
   }
   if (st.cuffs) { // white frilled cuff at the wrist
     const cx = lerp(el.x, hd.x, 0.78), cy = lerp(el.y, hd.y, 0.78);
@@ -501,9 +510,11 @@ function drawHumanoid(ctx, j, pose, st, parts, opts) {
   const skirted = !!st.flare; // long habits hide the legs
   if (skirted) { if (parts.legF) drawLeg(ctx, j, 'F', st); }
   drawTorso(ctx, j, st, pose.lean);
+  if (st.grimm) drawGrimmTorso(ctx, j, pose.lean);
   if (!parts.armB) stump(ctx, { x: j.sh.x - 2, y: j.sh.y + 2 }, st.limbW * 0.6);
   if (!skirted) { if (parts.legF) drawLeg(ctx, j, 'F', st); }
   if (!parts.legF) stump(ctx, { x: j.hip.x + 2, y: j.hip.y + 3 }, st.limbW * 0.65);
+  if (st.grimm) drawGrimmMantle(ctx, j, t);
   if (parts.head) drawHead(ctx, j.head, j.headAngle, st, t);
   else stump(ctx, j.neck, 4.5);
   if (opts.shield && parts.armB) drawShield(ctx, j.handB, st);

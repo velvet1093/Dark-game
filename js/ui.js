@@ -187,12 +187,48 @@ const UI = {
       UI.text(ctx, (sel ? '›  ' : '   ') + SKINS[id].name, px, y, 18, sel ? '#f0d8a0' : '#b8a888', 'left');
       if (on) UI.text(ctx, 'worn', px + 300, y, 12, '#c9a35a', 'right');
     });
+    ctx.fillStyle = 'rgba(165,190,155,0.12)'; ctx.fillRect(76, 375, 330, 40);
+    UI.text(ctx, Mobile.enabled ? 'Fairy designs  ›' : '[Q] Fairy designs  ›', 241, 401, 17, '#c4d4b2');
     const id = SKIN_ORDER[g.skinSel];
     ctx.fillStyle = 'rgba(255,255,255,0.03)'; ctx.fillRect(500, 110, 380, 330);
     drawSkinPreview(ctx, id, g.time, 680, 400, 2.6);
     ctx.font = `13px ${BODY_FONT}`;
     wrapText(ctx, SKINS[id].desc, 360).forEach((l, i) => UI.text(ctx, l, 690, 462 + i * 17, 13, '#bfb59d', 'center', BODY_FONT));
     UI.text(ctx, Mobile.enabled ? 'tap a name to wear it  ·  ❚❚ back' : 'W/S choose  ·  E wear  ·  Esc back', W / 2, H - 14, 11, '#6a604c', 'center', BODY_FONT);
+  },
+
+  fairyStyles(ctx, g) {
+    ctx.fillStyle = '#0c1110'; ctx.fillRect(0,0,W,H);
+    UI.text(ctx, '‹ Knight skins', 30, 50, 14, '#9caa97', 'left', BODY_FONT);
+    UI.text(ctx, 'FAIRY APPEARANCES', W/2, 49, 25, '#e2d8bf');
+    UI.text(ctx, 'She follows for one reason: to see how you die.', W/2, 76, 13, '#91a28f', 'center', BODY_FONT);
+    for (const [who,x] of [['lumi',330],['pip',490]]) {
+      ctx.fillStyle = g.fairyWho === who ? '#334536' : '#19221d'; ctx.fillRect(x,88,140,36);
+      UI.text(ctx, who === 'lumi' ? 'LUMI' : 'PIP', x+70,112,16,g.fairyWho === who ? '#e3deb9' : '#9caa97');
+    }
+    const pageStart = Math.floor(g.fairySel / 4) * 4;
+    FAIRY_ORDER.slice(pageStart, pageStart + 4).forEach((id,i) => {
+      const look=FAIRY_LOOKS[id], x=30+i*225, selected=pageStart+i===g.fairySel, worn=FairyStyles.choices[g.fairyWho]===id;
+      ctx.fillStyle=selected ? '#202d25' : '#131c17'; ctx.fillRect(x,140,210,328);
+      ctx.strokeStyle=selected ? '#bacb9a' : '#354438';ctx.lineWidth=selected ? 1.5 : 1;ctx.strokeRect(x+0.5,140.5,209,327);
+      UI.text(ctx, '0'+(i+1)+'  '+look.name, x+105,166,15,selected ? '#f0e0b4' : '#b9c2ad');
+      drawFairyPreview(ctx,id,g.time,x+105,282,3.15);
+      ctx.font=`12px ${BODY_FONT}`;
+      wrapText(ctx,look.desc,180).forEach((line,j)=>UI.text(ctx,line,x+105,320+j*15,12,'#a9b8a6','center',BODY_FONT));
+      if (SILK_PALETTES[id]) {
+        [look.dress,look.dark,look.trim,look.accent,look.hair,look.wing].forEach((color,j)=>{
+          ctx.fillStyle=color;ctx.fillRect(x+63+j*15,345,11,5);
+        });
+      }
+      // The smaller sprite uses gameplay scale, with no extra magnification.
+      drawSkinPreview(ctx,Skins.id,1.2,x+60,454,1);
+      drawFairyPreview(ctx,id,g.time,x+137,402,1);
+      UI.text(ctx,'1× in game',x+142,432,10,'#92a38e','center',BODY_FONT);
+      UI.text(ctx,worn ? 'WORN' : selected ? 'Choose' : '',x+142,451,11,worn ? '#e2d39c' : '#c2cfa9');
+    });
+    UI.text(ctx,['Drowned Silk palettes','Costume studies','Death-watchers','Earlier designs'][Math.floor(pageStart/4)]+'  ·  '+(Math.floor(pageStart/4)+1)+' / '+Math.ceil(FAIRY_ORDER.length/4)+'  ·  More designs ›',W/2,489,12,'#c6c7a0','center',BODY_FONT);
+    UI.text(ctx, Mobile.enabled ? 'Tap Lumi or Pip, then a design. Tap the page label for more.' : 'A/D choose  ·  E wear  ·  Q Lumi/Pip  ·  F more designs  ·  Esc back',W/2,502,13,'#a8b69f','center',BODY_FONT);
+    UI.text(ctx,'Enlarged detail above · Actual size beside the knight below',W/2,523,11,'#6f836f','center',BODY_FONT);
   },
 
   serviceMenu(ctx, g) {

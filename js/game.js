@@ -82,6 +82,7 @@ const Game = {
       case 'service': this.updateService(); FX.update(dt); break;
       case 'pause': this.updatePause(); break;
       case 'skins': this.updateSkins(); break;
+      case 'fairies': this.updateFairyStyles(); break;
       case 'dead': this.updateDead(dt); break;
       case 'cutscene': this.updateCutscene(dt); break;
     }
@@ -216,7 +217,7 @@ const Game = {
   updateMusic() {
     const s = this.state;
     let m = null;
-    if (s === 'title' || (s === 'skins' && this.skinReturn === 'title')) m = 'title';
+    if (s === 'title' || ((s === 'skins' || s === 'fairies') && this.skinReturn === 'title')) m = 'title';
     else if (s === 'narration') m = this.narration && this.narration.lines === STORY.ending ? 'requiem' : 'title';
     else if (s === 'menu') m = 'shrine';
     else if (s === 'dead' || s === 'cutscene') m = null;
@@ -474,18 +475,54 @@ const Game = {
     this.state = 'skins'; Sfx.play('page'); Input.clear();
   },
   updateSkins() {
+    if (Input.take('flask')) { this.openFairyStyles(); return; }
     const n = SKIN_ORDER.length;
     if (Input.take('up')) { this.skinSel = (this.skinSel + n - 1) % n; Sfx.play('ui'); }
     if (Input.take('down')) { this.skinSel = (this.skinSel + 1) % n; Sfx.play('ui'); }
     const back = () => { this.state = this.skinReturn; Input.clear(); };
     const tap = Mobile.takeTap();
     if (tap) {
+      if (tap.x >= 76 && tap.x <= 406 && tap.y >= 375 && tap.y <= 415) { this.openFairyStyles(); return; }
       const i = Math.round((tap.y - 113) / 40);
       if (i >= 0 && i < n && tap.x > 60 && tap.x < 430) { this.skinSel = i; Skins.set(SKIN_ORDER[i]); Sfx.play('confirm'); }
       Input.clear(); return;
     }
     if (Input.take('back') || Input.take('pause', 0.1)) { back(); return; }
     if (Input.take('confirm')) { Skins.set(SKIN_ORDER[this.skinSel]); Sfx.play('confirm'); }
+  },
+
+  openFairyStyles() {
+    this.fairyWho = 'lumi'; this.fairySel = FAIRY_ORDER.indexOf(FairyStyles.choices.lumi);
+    this.state = 'fairies'; Input.clear(); Sfx.play('page');
+  },
+  updateFairyStyles() {
+    const chooseWho = who => {
+      const page = Math.floor(this.fairySel / 4), saved = FAIRY_ORDER.indexOf(FairyStyles.choices[who]);
+      this.fairyWho = who; this.fairySel = Math.floor(saved / 4) === page ? saved : page * 4; Sfx.play('ui');
+    };
+    if (Input.take('back') || Input.take('pause', 0.1)) { this.state = 'skins'; Input.clear(); return; }
+    if (Input.take('flask') || Input.take('up') || Input.take('down')) chooseWho(this.fairyWho === 'lumi' ? 'pip' : 'lumi');
+    if (Input.take('execute')) { this.fairySel = (this.fairySel + 4) % FAIRY_ORDER.length; Sfx.play('page'); }
+    if (Input.take('left')) this.fairySel = (this.fairySel + FAIRY_ORDER.length - 1) % FAIRY_ORDER.length;
+    if (Input.take('right')) this.fairySel = (this.fairySel + 1) % FAIRY_ORDER.length;
+    const pageStart = Math.floor(this.fairySel / 4) * 4;
+    const equip = () => { FairyStyles.set(this.fairyWho, FAIRY_ORDER[this.fairySel]); Sfx.play('confirm'); };
+    const tap = Mobile.takeTap();
+    if (tap) {
+      if (tap.x < 155 && tap.y < 75) { this.state = 'skins'; Input.clear(); return; }
+      if (tap.y >= 474 && tap.y <= 494) {
+        this.fairySel = (pageStart + 4) % FAIRY_ORDER.length; Input.clear(); Sfx.play('page'); return;
+      }
+      if (tap.y >= 88 && tap.y <= 124) {
+        if (tap.x >= 330 && tap.x <= 470) chooseWho('lumi');
+        else if (tap.x >= 490 && tap.x <= 630) chooseWho('pip');
+      } else if (tap.y >= 140 && tap.y <= 468) {
+        const i = Math.floor((tap.x - 30) / 225);
+        if (i >= 0 && i < 4 && tap.x <= 30 + i * 225 + 210) { this.fairySel = pageStart + i; equip(); }
+      }
+      Input.clear(); return;
+    }
+    if (Input.take('confirm')) equip();
   },
 
   updatePause() {
@@ -872,7 +909,7 @@ const Game = {
     const ctx = this.ctx;
     ctx.setTransform(this.scale, 0, 0, this.scale, 0, 0);
     ctx.imageSmoothingEnabled = true;
-    if (this.state === 'title' || (this.state === 'skins' && this.skinReturn === 'title')) { UI.title(ctx, this); if (this.state === 'skins') UI.skins(ctx, this); Mobile.sync(this); return; }
+    if (this.state === 'title' || ((this.state === 'skins' || this.state === 'fairies') && this.skinReturn === 'title')) { UI.title(ctx, this); if (this.state === 'skins') UI.skins(ctx, this); if (this.state === 'fairies') UI.fairyStyles(ctx, this); Mobile.sync(this); return; }
     if (this.state === 'narration') { UI.narration(ctx, this); Mobile.sync(this); return; }
 
     const p = this.player, t = this.time;
@@ -1002,6 +1039,7 @@ const Game = {
     if (this.state === 'menu') UI.shrineMenu(ctx, this);
     if (this.state === 'service') UI.serviceMenu(ctx, this);
     if (this.state === 'pause') UI.pause(ctx, this);
+    if (this.state === 'fairies') UI.fairyStyles(ctx, this);
     if (this.state === 'skins') UI.skins(ctx, this);
     if (this.state === 'dead') UI.death(ctx, this);
     if (this.fadeAlpha > 0) { ctx.fillStyle = `rgba(0,0,0,${this.fadeAlpha})`; ctx.fillRect(0, 0, W, H); }

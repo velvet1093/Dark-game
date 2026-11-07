@@ -130,6 +130,29 @@ The little lantern fairies are not guides. The Sisters call them **death-watcher
 gather where blood will be spilt and follow doomed souls, chattering kindly, because a long
 death is sweeter to them than a quick one.
 
+Open **Appearance → Fairy designs** from the title screen or pause menu (keyboard: **Q** in Appearance). Choose **Lumi** or **Pip**, then tap a design or use **A/D** and **E** to wear it. **Q** switches companions; **Esc** returns to knight skins. Each choice is remembered independently and applies immediately to existing companions. The menu shows enlarged detail and actual-size sprites beside the knight, using the same renderer as the world. Fairies now render at 0.56× their drawing coordinates on desktop and mobile (about half their previous height), including their glow. Press **F** or tap the page label to cycle through Drowned Silk palettes, costume studies, death-watchers, and earlier designs.
+
+| Fairy design | In-game look |
+| --- | --- |
+| Jade & Bone | Drowned Silk in jade, bone and plum, with ink-black hair |
+| Crimson Mourning | Drowned Silk in wine red and antique gold, with silver-white hair |
+| Midnight Wisteria | Drowned Silk in indigo, lavender and silver, with dusk-dark hair |
+| Porcelain Ember | Drowned Silk in ivory, charcoal and vermilion, with ash-blond hair |
+| Copper Jester | Rust/petrol motley, diamond panels, puffed shorts and a two-point bell cap |
+| Drowned Silk | Sea-blue wrap robe, porcelain trim, hanging sleeves, golden obi and hairpins |
+| Velvet Wake | Plum/silver split tailcoat, cravat, fitted trousers, boots and a tilted top hat |
+| Saffron Hex | Ochre/soot patchwork poncho, bloomers and a crooked witch hat |
+| Briar Grin | Pale-green hair, sharp dragonfly wings, and a smile that widens as the player bleeds |
+| Shroud Moth | Funeral veil, pallid lace and soft ghost-grey wings |
+| Carrion Bell | Ragged feather-like wings, a bone mask and a tiny funeral bell |
+| Widow’s Spark | Burgundy hood, pointed wings and a miniature hourglass |
+| Verdant Maid | Long green hair, frilled headband, layered leaf dress and narrow dragonfly wings |
+| Moonlace | Silver hair, corset bodice, lavender lace skirt and scalloped butterfly wings |
+| Thorn Rose | Wine-red braid, thorn crown, rose-petal skirt and pointed rose wings |
+| Lantern Wisp | Golden hair, cream bellflower dress, dark capelet, amber moth wings and a glowing hand lantern |
+
+Lumi wears **Crimson Mourning**, the selected Drowned Silk palette: wine-red wrap robes, antique-gold sash, silver-white hair and rose-tinted wings. It becomes her default for new players and is applied once when upgrading existing appearance preferences; later cosmetic choices remain saved. Pip’s saved appearance is preserved, with Shroud Moth as her default. All Drowned Silk palettes share the same robe, obi, sleeves, hairpins, wings, animation and small size. All appearances share her malicious death-watcher behavior: she draws closer when the player is badly hurt and giggles while circling the corpse. The new designs show delight when the player is dying; none heals or attacks. Appearance choices do not change quests or combat.
+
 **Pip** keeps Wren company while she digs graves. **Lumi** waits with the dying monk on the
 road, then attaches herself to Sir Aldric because a knight will be more interesting to watch
 die. Her "advice" is real (rest at shrines, finish staggering foes, drink a vial, get the
@@ -214,6 +237,7 @@ default.
 | Mourning Knight | Black plate under a heavy hood and a ragged fur mantle |
 | Barrow Warden | Rust-dark iron, a T-slit barbute over a mail hood |
 | Ashborn | Charred plate split by glowing ember cracks |
+| Grimm | Inspired by *Black Souls*: a pointed closed helmet with cut visor vents, a torn streaming crest, layered moss-grey plate, and a broad shaggy fur mantle |
 
 To add a skin, add an entry to `SKINS` in `js/skins.js` (a style object for the rig; new
 helm shapes go in `EXTRA_HELMS`) and list it in `SKIN_ORDER`.
