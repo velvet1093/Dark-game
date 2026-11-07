@@ -103,7 +103,7 @@ class Player {
         this.state = blocking ? 'block' : dir ? (sprint ? 'run' : 'walk') : 'idle';
         if (dir) {
           this.walkPhase += dt * (sprint ? 11 : blocking ? 5 : 8);
-          if (Math.floor(this.walkPhase / Math.PI) !== this.lastStep) { this.lastStep = Math.floor(this.walkPhase / Math.PI); Sfx.play('step'); }
+          if (Math.floor(this.walkPhase / Math.PI) !== this.lastStep) { this.lastStep = Math.floor(this.walkPhase / Math.PI); Sfx.play(zoneIndex(this.x) > 0 ? 'stepStone' : 'step'); }
         }
         break;
       }

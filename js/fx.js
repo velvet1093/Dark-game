@@ -112,6 +112,7 @@ const FX = {
           if (Math.abs(g.vy) > 160) {
             g.vy *= -0.32; g.vx *= 0.55; g.vr *= 0.5;
             this.decal(g.x, rand(5, 9));
+            Sfx.play('thud');
             this.blood(g.x, g.y, -Math.PI / 2, 0.9, 140, 5);
           } else {
             g.vy = 0; g.vx = 0; g.rest = true;
@@ -187,6 +188,10 @@ const FX = {
           ctx.globalAlpha = 1 - f * 0.5; ctx.fillStyle = '#ffcf7a';
           ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2); ctx.fill();
           ctx.globalAlpha *= 0.3; ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI * 2); ctx.fill();
+          break;
+        case 'fy': // fairy sparkle
+          ctx.globalAlpha = (1 - f) * (0.6 + Math.sin(p.t * 14 + p.ph) * 0.4); ctx.fillStyle = f < 0.4 ? '#ffffff' : '#c9b0ff';
+          ctx.fillRect(p.x - 0.8, p.y - 2.2, 1.6, 4.4); ctx.fillRect(p.x - 2.2, p.y - 0.8, 4.4, 1.6);
           break;
         case 'a':
           ctx.globalAlpha = (1 - f) * 0.5; ctx.fillStyle = '#c0140f';

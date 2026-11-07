@@ -33,6 +33,7 @@ browser allows it, and a ⛶ button toggles it. In portrait you get a "turn your
 | ☠ EXECUTE | Appears and pulses red when a foe can be finished |
 | ✋ | Appears near people, notes and shrines (Speak / Read / Rest) |
 | ❚❚ | Pause; also leaves shrine menus and skips story screens |
+| ♪ | Sound on/off |
 | Tap the screen | Continue dialogue and pick menu options |
 
 Hits and executions vibrate on phones that support it. On iPhone, Safari can't make a web
@@ -79,6 +80,35 @@ Desktop browsers can force touch controls with `index.html?touch`.
   because if you die again first, they are lost.
 - **Shrines.** Resting heals you and refills your vials, but every enemy rises again.
 
+## Fairy guides
+
+Each NPC is kept company by a tiny lavender fairy with long white hair, four dragonfly
+wings, a frilled headband and a long lavender dress. **Pip** stays with Wren the gravedigger.
+**Lumi** waves you over to Brother Osric, then joins you after his story. She follows at your
+shoulder and calls out advice: rest at a new shrine, finish a staggering foe, drink a vial when
+you're bleeding out, break a shield with a heavy attack, recover your dropped embers. She won't
+follow you through the boss's fog wall and waits for you outside it.
+
+## Music & sound
+
+All music is composed in code and played through a small WebAudio sequencer with hall reverb.
+Tracks crossfade as you move through the game:
+
+| Track | Where |
+| --- | --- |
+| Lament (choir, bells) | Title & story screens |
+| Lonely harp over a drone | The Weeping Road |
+| Tremolo strings, a distant bell | Burning Hallowmere |
+| Slow choir & organ | Cathedral steps |
+| Taiko, ostinato bass, choir stabs | The Headsman fight (it gets louder in his second phase) |
+| Warm harp | Near lit shrines & in the shrine menu |
+| Requiem | After the Headsman falls |
+
+Sound effects include sword swings, flesh hits, bone-crack severs, arterial spurts,
+parry rings, armour rattles on rolls, footsteps on mud or stone, enemy grunts before they
+strike, hollowed villagers groaning, limbs thudding to the ground, fire crackle, rain, fairy
+chimes, pages and the cathedral doors. `M` (or the ♪ button on mobile) mutes everything.
+
 ## Story
 
 Three regions lead to a boss:
@@ -95,7 +125,7 @@ Four lore notes are hidden along the way, plus one more if you behead the Headsm
 ```
 index.html        canvas + script loading
 js/util.js        constants, math helpers, input (with press buffering)
-js/audio.js       WebAudio synthesized sound effects + ambience
+js/audio.js       synthesized sound effects, ambience and the music sequencer
 js/mobile.js      touch buttons, joystick, fullscreen, landscape lock, haptics
 js/rig.js         procedural skeleton, body/head/weapon drawing, severed parts
 js/weapons.js     WEAPON REGISTRY: movesets, executions, weapon art
@@ -104,6 +134,7 @@ js/player.js      the knight: movement, combat, guard/parry, rolls, vials
 js/enemies.js     enemy types, AI, damage, bleeding, dismemberment, the boss
 js/world.js       level layout, zones, parallax scenery, props, weather
 js/story.js       narration, dialogue and lore notes
+js/fairy.js       fairy guide companions and Lumi's hints
 js/ui.js          HUD, menus, dialogue box, title & death screens
 js/game.js        state machine, camera, executions, saving, rendering
 ```

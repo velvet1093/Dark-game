@@ -26,6 +26,9 @@ const STORY = {
     { who: 'Brother Osric', text: 'They did rise, knight. They rose wrong.' },
     { who: 'Brother Osric', text: 'Take this. Holy water, blessed before the blessing curdled. Drink, and your wounds will close... for a time.' },
     { who: '', text: 'Received: Vial of Saint\'s Tears. Your vials increase by one.', reward: 'flask' },
+    { who: 'Lumi', text: 'Hello! I\'m Lumi. Brother Osric found me asleep inside a lantern shrine. He says I talk too much.' },
+    { who: 'Brother Osric', text: 'She does. Take her with you, knight. She knows these roads, and she sees what the dead try to hide.' },
+    { who: 'Lumi', text: 'I\'ll ride on your shoulder and keep watch. If you start dying, I\'ll yell. Loudly.' },
     { who: 'Brother Osric', text: 'Hallowmere lies east, past the gallows. And Gaul keeps the cathedral steps now... You knew him, didn\'t you?' },
   ],
   osricRepeat: [
@@ -39,6 +42,8 @@ const STORY = {
     { who: 'Wren', text: 'The garrison turned first. Captain\'s orders, they said. Then the flagellants came down from the hills, whipping themselves red, singing for the Bishop.' },
     { who: 'Wren', text: 'The Headsman guards the cathedral now. Gaul. He used to give us apples at harvest. Now he gives everyone the axe.' },
     { who: 'Wren', text: 'If you\'re going up there... cut deep. They don\'t feel pain any more. But they still bleed out.' },
+    { who: 'Pip', text: 'Wren\'s too proud to say it, but she\'s glad you came. I\'m Pip. I keep the crows off the graves.' },
+    { who: 'Wren', text: 'Pip! ...Fine. Yes. I\'m glad. Pip says the lantern fairies have been watching over you since the river.' },
     { who: '', text: 'Wren presses a pouch of tarnished grave-coins into your palm. (+200 Embers)', reward: 'embers' },
   ],
   wrenRepeat: [

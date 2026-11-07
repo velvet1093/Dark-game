@@ -168,6 +168,7 @@ class Enemy {
       case 'dormant': this.vx = 0; break;
       case 'idle':
         this.vx = 0;
+        if (this.kind === 'peasant' && dist < 500 && chance(dt * 0.25)) Sfx.play('groan');
         if (!p.dead && dist < this.def.aggro && (dist < this.def.aggro * 0.6 || this.facing === Math.sign(dx) || this.sinceHit < 1)) {
           this.state = 'chase'; this.st = 0; this.idleMode = 'stand';
         }
@@ -317,6 +318,7 @@ class Enemy {
   beginAttack(a) {
     if (!a) return;
     this.atk = a; this.state = 'windup'; this.st = 0; this.hitDone = false; this.impacted = false;
+    if (!a.chained) Sfx.play(this.boss ? 'bossGrunt' : 'grunt');
     this.atkFrom = Object.assign({}, this.pose);
     const m = MOTIONS[a.motion];
     this.atkWind = basePose(Object.assign({}, this.combatPose(), m.wind));

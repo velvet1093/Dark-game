@@ -119,7 +119,7 @@ const UI = {
     ctx.fillStyle = grad; ctx.fillRect(bx, by, bw, bh);
     ctx.strokeStyle = 'rgba(160,130,90,0.45)'; ctx.lineWidth = 1; ctx.strokeRect(bx + 0.5, by + 0.5, bw, bh);
     ctx.strokeStyle = 'rgba(160,130,90,0.2)'; ctx.strokeRect(bx + 4.5, by + 4.5, bw - 8, bh - 8);
-    if (line.who) UI.text(ctx, line.who, bx + 24, by + 28, 16, line.who === 'Aldric' ? '#a9b4c2' : '#c9a35a', 'left');
+    if (line.who) UI.text(ctx, line.who, bx + 24, by + 28, 16, line.who === 'Aldric' ? '#a9b4c2' : (line.who === 'Lumi' || line.who === 'Pip') ? '#c9b3ff' : '#c9a35a', 'left');
     ctx.font = `18px ${BODY_FONT}`;
     const shown = line.text.slice(0, Math.floor(d.chars));
     const lines = wrapText(ctx, shown, bw - 48);

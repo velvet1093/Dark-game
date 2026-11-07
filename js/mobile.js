@@ -70,6 +70,7 @@ const Mobile = {
       <div class="zone" id="t-zone"></div>
       <div class="stick" id="t-stick"><div class="knob" id="t-knob"></div></div>
       <div class="top">
+        <button class="tb small" id="t-snd" aria-label="Sound">♪</button>
         <button class="tb small" id="t-fs" aria-label="Fullscreen">⛶</button>
         <button class="tb small" data-code="Escape" aria-label="Pause">❚❚</button>
       </div>
@@ -101,6 +102,8 @@ const Mobile = {
       b.addEventListener('pointercancel', up);
       b.addEventListener('lostpointercapture', up);
     });
+    this.el.snd = root.querySelector('#t-snd');
+    this.el.snd.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); Sfx.init(); Sfx.toggleMute(); });
     this.el.fs.addEventListener('pointerdown', e => {
       e.preventDefault(); e.stopPropagation();
       if (this.isFullscreen()) this.exitFullscreen(); else this.enterFullscreen();
@@ -202,6 +205,7 @@ const Mobile = {
       const v = `VIAL ${p.flasks}`;
       if (this.el.vials.textContent !== v) this.el.vials.textContent = v;
     }
+    if (Sfx.muted !== this.lastMute) { this.lastMute = Sfx.muted; this.el.snd.style.opacity = Sfx.muted ? '0.4' : '1'; this.el.snd.textContent = Sfx.muted ? '✕♪' : '♪'; }
     const fs = this.isFullscreen();
     if (fs !== this.lastFs) { this.lastFs = fs; this.el.fs.textContent = fs ? '✕' : '⛶'; }
   },

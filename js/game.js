@@ -13,6 +13,7 @@ const Game = {
   arena: null, bossActive: false, exec: null, slow: null, pending: null,
   toasts: [], banner: null, hintsShown: new Set(), zonesShown: new Set(), curZone: 0,
   dialogue: null, note: null, menu: null, narration: null,
+  fairies: [], fairyShown: new Set(), fairyCd: {}, viewL: 0, viewR: W,
   titleSel: 0, pauseSel: 0, deathT: 0, fadeAlpha: 0, emberDisplay: 0, interactTarget: null,
 
   init() {
@@ -59,6 +60,7 @@ const Game = {
   step(dt) {
     this.time += dt;
     if (Input.take('mute', 0.1)) Sfx.toggleMute();
+    this.updateMusic();
     for (const t of this.toasts) t.t += dt;
     this.toasts = this.toasts.filter(t => t.t < t.life);
     if (this.banner) { this.banner.t += dt; if (this.banner.t > this.banner.life) this.banner = null; }
@@ -105,7 +107,7 @@ const Game = {
     store.del(SAVE_KEY); this.save = null;
     this.player = new Player();
     this.flags = { notes: {} }; this.kindled = new Set([0]); this.shrine = 0; this.stain = null;
-    this.hintsShown = new Set(); this.zonesShown = new Set();
+    this.hintsShown = new Set(); this.zonesShown = new Set(); this.fairyShown = new Set(); this.fairyCd = {};
     FX.clearDecals();
     Sfx.startAmbience();
     this.startNarration(STORY.intro, () => {
@@ -123,7 +125,7 @@ const Game = {
     p.embers = s.embers || 0; p.maxFlasks = s.maxFlasks || 3;
     this.flags = Object.assign({ notes: {} }, s.flags || {});
     this.kindled = new Set(s.kindled || [0]); this.shrine = s.shrine || 0; this.stain = s.stain || null;
-    this.hintsShown = new Set(LEVEL.hints.map((h, i) => i)); this.zonesShown = new Set();
+    this.hintsShown = new Set(LEVEL.hints.map((h, i) => i)); this.zonesShown = new Set(); this.fairyShown = new Set(); this.fairyCd = {};
     FX.clearDecals();
     Sfx.startAmbience();
     this.setupRun(this.shrine);
@@ -152,7 +154,70 @@ const Game = {
     this.zonesShown.add(this.curZone);
     this.fadeAlpha = 1;
     this.emberDisplay = this.player.embers;
+    this.spawnFairies();
     Input.clear();
+  },
+
+  spawnFairies() {
+    const npc = id => LEVEL.npcs.find(n => n.id === id);
+    const lumi = new Fairy('lumi', 'Lumi', this.flags.lumi ? null : npc('osric'));
+    if (this.flags.lumi) { lumi.x = this.player.x - 30; lumi.y = GROUND - 110; }
+    this.fairies = [lumi, new Fairy('pip', 'Pip', npc('wren'))];
+  },
+
+  joinLumi() {
+    const lumi = this.fairies.find(f => f.id === 'lumi');
+    this.flags.lumi = true;
+    if (lumi) { lumi.mode = 'follow'; lumi.home = null; lumi.say('Lead on, Sir Knight! I\'ll keep watch.', 3.5, true); }
+    Sfx.play('fairyJoin');
+    this.toast('Lumi the fairy now travels with you.', 4);
+  },
+
+  updateFairies(dt) { for (const f of this.fairies) f.update(dt, this); },
+
+  fairyHints() {
+    const lumi = this.fairies.find(f => f.mode === 'follow'), p = this.player;
+    if (!lumi || p.dead || this.state !== 'play') return;
+    if (lumi.bubble || lumi.hintCd > 0 || this.banner) return;
+    const hint = (key, repeat) => {
+      if (!repeat && this.fairyShown.has(key)) return false;
+      if (repeat && (this.fairyCd[key] || 0) > this.time) return false;
+      this.fairyShown.add(key); if (repeat) this.fairyCd[key] = this.time + repeat;
+      lumi.say(FAIRY_HINTS[key]()); lumi.hintCd = 6; return true;
+    };
+    const near = (x, r) => Math.abs(p.x - x) < r;
+    if (!p.busy && this.findExecutable() && hint('exec')) return;
+    if (p.hp < p.maxHp * 0.3 && (p.flasks > 0 ? hint('lowhp', 25) : hint('novial'))) return;
+    if (this.respawnHint && this.stain) { this.respawnHint = false; this.fairyShown.delete('respawn'); if (hint('respawn')) return; }
+    if (LEVEL.shrines.some(s => !this.kindled.has(s.id) && near(s.x, 170)) && hint('shrine')) return;
+    if (this.allNotes().some(n => !this.flags.notes[n.id] && near(n.x, 130)) && hint('note')) return;
+    if (this.enemies.some(e => !e.dead && e.crippled && near(e.x, 260)) && hint('cripple')) return;
+    if (this.enemies.some(e => !e.dead && e.hasShield && e.state === 'chase' && near(e.x, 200)) && hint('shield')) return;
+    const z = zoneIndex(p.x);
+    if (z === 1 && hint('zone1')) return;
+    if (z === 2 && hint('zone2')) return;
+    if (!this.flags.bossDead && near(LEVEL.bossGate, 230) && hint('gate')) return;
+    if (this.flags.bossDead && hint('bossdead')) return;
+  },
+
+  updateMusic() {
+    const s = this.state;
+    let m = null;
+    if (s === 'title') m = 'title';
+    else if (s === 'narration') m = this.narration && this.narration.lines === STORY.ending ? 'requiem' : 'title';
+    else if (s === 'menu') m = 'shrine';
+    else if (s === 'dead' || s === 'cutscene') m = null;
+    else if (this.player) {
+      const p = this.player, z = zoneIndex(p.x);
+      if (this.bossActive && this.boss && !this.boss.dead && !(s === 'dialogue' && this.boss.state === 'standing')) m = 'boss';
+      else if (this.flags.bossDead && z === 2) m = 'requiem';
+      else if (LEVEL.shrines.some(sh => this.kindled.has(sh.id) && Math.abs(p.x - sh.x) < 150)) m = 'shrine';
+      else m = ['road', 'village', 'cathedral'][z];
+    }
+    Music.play(m);
+    Music.setIntensity(this.boss && this.boss.phase2 ? 1 : 0);
+    const wz = this.player && s !== 'title' ? ZONES[zoneIndex(this.player.x)].weather : 'rain';
+    Sfx.setRain(wz === 'rain' && s !== 'narration' ? 1 : 0);
   },
 
   spawnEnemies() {
@@ -210,6 +275,8 @@ const Game = {
     p.update(wdt, this);
     for (const e of this.enemies) e.update(wdt, this);
     this.separateEnemies();
+    this.updateFairies(wdt);
+    this.fairyHints();
     FX.update(wdt);
     this.updateWorldFx(wdt);
     this.updateCamera(wdt);
@@ -267,6 +334,7 @@ const Game = {
         if (chance(dt * 26)) FX.fire(pr.x + rand(-w / 2, w / 2), GROUND - 200 - rand(0, 40));
         if (chance(dt * 6)) FX.smoke(pr.x + rand(-w / 3, w / 3), GROUND - 240);
         if (chance(dt * 5)) FX.ember(pr.x + rand(-w / 2, w / 2), GROUND - 220);
+        if (Math.abs(pr.x - this.player.x) < 320 && chance(dt * 9)) Sfx.play('crackle');
       }
       if (pr.type === 'brazier' && chance(dt * 40)) FX.fire(pr.x, GROUND - 70);
     }
@@ -305,14 +373,15 @@ const Game = {
     else if (it.kind === 'npc') {
       p.facing = Math.sign(it.obj.x - p.x) || 1;
       const id = it.obj.id;
-      if (!this.flags[id]) this.startDialogue(STORY[id], () => { this.flags[id] = true; this.saveGame(); });
+      if (!this.flags[id]) this.startDialogue(STORY[id], () => { this.flags[id] = true; if (id === 'osric') this.joinLumi(); this.saveGame(); });
       else this.startDialogue(STORY[id + 'Repeat']);
     } else if (it.kind === 'note') {
       this.note = STORY.notes[it.obj.id];
       this.flags.notes[it.obj.id] = true;
-      this.state = 'note'; Sfx.play('ui'); Input.clear();
+      this.state = 'note'; Sfx.play('page'); Input.clear();
     } else if (it.kind === 'door') {
-      Sfx.play('bell');
+      Sfx.play('door'); Sfx.play('bell');
+      Music.play('requiem');
       this.startNarration(STORY.ending, () => { this.state = 'title'; this.titleSel = 0; this.save = store.get(SAVE_KEY); });
     }
   },
@@ -322,6 +391,7 @@ const Game = {
     if (!this.kindled.has(s.id)) {
       this.kindled.add(s.id);
       this.showBanner('LANTERN KINDLED', '', '#e8b860', 3);
+      Sfx.play('kindle');
     }
     Sfx.play('shrine');
     this.shrine = s.id;
@@ -406,6 +476,7 @@ const Game = {
     d.chars = Math.min(line.text.length, d.chars + dt * 55);
     FX.update(dt);
     if (this.boss && this.bossActive) this.boss.update(dt, this);
+    this.updateFairies(dt);
     this.updateCamera(dt);
     if (Input.take('confirm') || Input.take('interact')) {
       if (d.chars < line.text.length) d.chars = line.text.length;
@@ -456,6 +527,7 @@ const Game = {
     p.computePose(dt); p.joints = solveRig(p.pose);
     if (this.cutT > 1.2 && b.state === 'dormant') { b.state = 'standing'; }
     b.update(dt, this);
+    this.updateFairies(dt);
     FX.update(dt);
     this.updateWorldFx(dt);
     this.updateCamera(dt);
@@ -514,12 +586,14 @@ const Game = {
     this.deathT += dt;
     this.player.update(dt, this);
     for (const e of this.enemies) e.update(dt, this);
+    this.updateFairies(dt);
     FX.update(dt);
     this.updateWorldFx(dt);
     this.updateCamera(dt);
     if (this.deathT > 3 && (Input.take('confirm') || Input.take('interact'))) {
       this.setupRun(this.shrine);
       this.state = 'play';
+      this.respawnHint = true;
     }
   },
 
@@ -640,6 +714,7 @@ const Game = {
     const z = this.cam.zoom, b = clamp((z - 1) / 0.4, 0, 1);
     const cx = lerp(this.cam.x + W / 2, this.cam.ex, b), cy = lerp(H / 2, this.cam.ey, b);
     const l = cx - W / 2 / z - 40, r = cx + W / 2 / z + 40;
+    this.viewL = l + 40; this.viewR = r - 40;
     ctx.save();
     ctx.translate(W / 2 + sx, H / 2 + sy); ctx.scale(z, z); ctx.translate(-cx, -cy);
 
@@ -680,6 +755,7 @@ const Game = {
     FX.drawGibs(ctx, l, r);
     for (const e of this.enemies) if (!e.dead && e.x > l - 120 && e.x < r + 120) e.draw(ctx, t, true);
     p.draw(ctx, t);
+    for (const f of this.fairies) if (f.x > l - 60 && f.x < r + 60) f.draw(ctx, t);
     FX.drawParts(ctx, l, r);
 
     if (!this.flags.bossDead) {
@@ -699,6 +775,7 @@ const Game = {
       }
     }
     FX.drawTexts(ctx);
+    if (this.state !== 'cutscene') for (const f of this.fairies) f.drawBubble(ctx);
     ctx.restore();
 
     // screen-space atmosphere
