@@ -27,17 +27,41 @@ const UI = {
     const hw = Math.min(620, p.maxHp * 2.1), sw = Math.min(620, p.maxSt * 2.1);
     UI.bar(ctx, 28, 26, hw, 10, p.hp / p.maxHp, '#8e1414', '#2a0808', p.hpLag / p.maxHp);
     UI.bar(ctx, 28, 44, sw, 6, p.st / p.maxSt, '#4e7a3a', '#132010');
+    // infection: the Red Weeping in the knight's blood
+    const iw = 190, iy = 58, inf = p.turning ? 1 : p.infection / 100;
+    const pulse = g.pulse || 0;
+    UI.bar(ctx, 28, iy, iw, 5, inf, p.turning ? `rgb(${200 + pulse * 55},20,30)` : inf > 0.75 ? '#a3123a' : '#7a2a6a', '#1a0a14');
+    if (inf > 0) { ctx.strokeStyle = 'rgba(255,90,120,0.35)'; ctx.lineWidth = 1; ctx.beginPath(); for (let k = 0; k < iw * inf; k += 9) { ctx.moveTo(28 + k, iy + 1); ctx.lineTo(28 + k + 4, iy + 4); } ctx.stroke(); }
+    UI.text(ctx, p.turning ? 'TURNING' : `INFECTION ${Math.round(p.infection)}%`, 28 + iw + 10, iy + 6, 10, p.turning ? '#ff4a3a' : '#a8789a', 'left');
+    if (p.turning) {
+      const m = Math.floor(Math.max(0, p.turnT) / 60), sec = Math.floor(Math.max(0, p.turnT) % 60);
+      const big = 1 + pulse * 0.08;
+      const ty0 = Mobile.enabled ? H - 54 : (g.bossActive ? H - 110 : H - 80);
+      ctx.save(); ctx.translate(W / 2, ty0); ctx.scale(big, big);
+      UI.text(ctx, `THE WEEPING TAKES YOU  ${m}:${String(sec).padStart(2, '0')}`, 0, 0, 20, p.turnT < 20 ? '#ff3a2a' : '#e05a4a');
+      ctx.restore();
+      UI.text(ctx, p.tonics > 0 ? (Mobile.enabled ? 'drink a TONIC or reach a Sister' : 'drink a tonic (T) or reach a Sister') : 'reach a Sister of Saint Ysolde', W / 2, ty0 + 18, 12, '#d8a090', 'center', BODY_FONT);
+    }
     // vials
     for (let i = 0; i < p.maxFlasks; i++) {
-      const x = 34 + i * 20, y = Mobile.enabled ? 74 : H - 40, full = i < p.flasks;
+      const x = 34 + i * 20, y = Mobile.enabled ? 90 : H - 40, full = i < p.flasks;
       ctx.fillStyle = full ? '#d7a85a' : '#2a2620';
       ctx.beginPath(); ctx.moveTo(x - 3, y - 10); ctx.lineTo(x + 3, y - 10); ctx.lineTo(x + 3, y - 5); ctx.lineTo(x + 7, y + 3); ctx.lineTo(x + 7, y + 10); ctx.lineTo(x - 7, y + 10); ctx.lineTo(x - 7, y + 3); ctx.lineTo(x - 3, y - 5); ctx.closePath(); ctx.fill();
       ctx.strokeStyle = '#5a5040'; ctx.lineWidth = 1; ctx.stroke();
       if (full) { ctx.fillStyle = 'rgba(255,240,200,0.4)'; ctx.fillRect(x - 5, y + 3, 3, 5); }
     }
     if (!Mobile.enabled) UI.text(ctx, 'Q', 34 + p.maxFlasks * 20 + 4, H - 32, 11, '#7a6e5a', 'left');
+    // purging tonics
+    { const tx0 = 34 + p.maxFlasks * 20 + (Mobile.enabled ? 10 : 22), ty0 = Mobile.enabled ? 90 : H - 40;
+      for (let i = 0; i < p.maxTonics; i++) {
+        const x = tx0 + i * 15, full = i < p.tonics;
+        ctx.fillStyle = full ? '#8ab060' : '#20261a'; rr(ctx, x - 4, ty0 - 6, 8, 15, 2); ctx.fill();
+        ctx.fillStyle = full ? '#c8a878' : '#2a2620'; ctx.fillRect(x - 2, ty0 - 9, 4, 3);
+      }
+      if (!Mobile.enabled) UI.text(ctx, 'T', tx0 + p.maxTonics * 15, H - 32, 11, '#7a6e5a', 'left');
+    }
     // weapon
-    if (!Mobile.enabled) UI.text(ctx, `${p.weapon.name} · ${p.weapon.kind}`, 28, H - 58, 12, '#8f8470', 'left', BODY_FONT);
+    if (!Mobile.enabled) UI.text(ctx, `${p.weapon.name}${p.weaponLevel ? ' +' + p.weaponLevel : ''} · ${p.weapon.kind}`, 28, H - 58, 12, '#8f8470', 'left', BODY_FONT);
     // embers
     const ex = Mobile.enabled ? W - 150 : W - 30, ey = Mobile.enabled ? 40 : H - 34;
     ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(ex - 130, ey - 20, 136, 30);
@@ -151,6 +175,26 @@ const UI = {
     UI.text(ctx, Mobile.enabled ? 'tap to close' : '[E] close', W / 2, py + ph + 26, 12, '#9a8a6a');
   },
 
+  serviceMenu(ctx, g) {
+    const info = g.serviceInfo(), sv = g.service;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, 0, W, H);
+    const pw = 460, ph = 240, px = (W - pw) / 2, py = (H - ph) / 2;
+    ctx.fillStyle = 'rgba(12,8,14,0.94)'; ctx.fillRect(px, py, pw, ph);
+    ctx.strokeStyle = 'rgba(200,175,255,0.4)'; ctx.strokeRect(px + 0.5, py + 0.5, pw, ph);
+    UI.text(ctx, info.title, W / 2, py + 38, 20, '#e0d0f0');
+    ctx.font = `13px ${BODY_FONT}`;
+    wrapText(ctx, info.sub, pw - 60).forEach((l, i) => UI.text(ctx, l, W / 2, py + 62 + i * 16, 13, '#9a8ab0', 'center', BODY_FONT));
+    const p = g.player;
+    UI.text(ctx, `Embers ${p.embers}    ·    Infection ${p.turning ? 'TURNING' : Math.round(p.infection) + '%'}    ·    Tonics ${p.tonics}/${p.maxTonics}`, W / 2, py + 98, 12, '#b8a8c8', 'center', BODY_FONT);
+    info.opts.forEach((o, i) => {
+      const y = py + 116 + i * 36 + 14, sel = i === sv.sel;
+      if (sel) { ctx.fillStyle = 'rgba(150,110,200,0.18)'; ctx.fillRect(px + 20, y - 22, pw - 40, 32); }
+      UI.text(ctx, (sel ? '›  ' : '   ') + o.label, px + 36, y, 16, o.disabled ? '#5a5260' : sel ? '#f0e0ff' : '#b8a8c8', 'left');
+      if (o.value) UI.text(ctx, o.value, px + pw - 36, y, 14, '#d0c0e0', 'right');
+    });
+    UI.text(ctx, Mobile.enabled ? 'tap to select, tap again to confirm  ·  ❚❚ leave' : 'W/S select  ·  E confirm  ·  Esc leave', W / 2, py + ph - 12, 11, '#6a607a', 'center', BODY_FONT);
+  },
+
   shrineMenu(ctx, g) {
     const m = g.menu; if (!m) return;
     const p = g.player;
@@ -195,12 +239,12 @@ const UI = {
       ['A / D', 'Move'], ['Shift', 'Sprint'], ['Space', 'Roll (invulnerable mid-roll)'],
       ['J  /  Left Click', 'Attack (3-hit chain)'], ['K  /  Right Click', 'Heavy attack'], ['S + Attack', 'Hamstring Cut (cripple)'],
       ['Hold L  /  C', 'Guard  (tap just before a hit to parry)'], ['F', 'Execute a weakened foe'],
-      ['Q', 'Drink a vial'], ['E', 'Interact / rest'], ['M', 'Mute'], ['Esc', 'Pause'],
+      ['Q  ·  T', 'Drink a vial  ·  drink a tonic'], ['E', 'Interact / rest'], ['M  ·  Esc', 'Mute  ·  pause'],
     ];
     if (Mobile.enabled) ctl.splice(0, ctl.length,
       ['Left stick', 'Walk  (push to the rim to sprint)'], ['⟳ ROLL', 'Roll — invulnerable mid-roll'], ['⚔ ATTACK', 'Attack (3-hit chain)'],
       ['✦ HEAVY', 'Heavy attack'], ['Stick down + ⚔', 'Hamstring Cut (cripple)'], ['⛨ GUARD', 'Hold to block, tap to parry'],
-      ['☠ EXECUTE', 'Finish a weakened foe'], ['⚱ VIAL', 'Drink a vial'], ['✋', 'Speak / read / rest'], ['⛶', 'Fullscreen'], ['❚❚', 'Pause'], ['Tap', 'Continue dialogue']);
+      ['☠ EXECUTE', 'Finish a weakened foe'], ['⚱ VIAL', 'Drink a vial'], ['✚ TONIC', 'Purge infection'], ['✋', 'Speak / read / rest'], ['⛶  ❚❚', 'Fullscreen · pause'], ['Tap', 'Continue dialogue']);
     ctl.forEach((c, i) => {
       const col = i < 6 ? 0 : 1;
       const x = col ? W / 2 + 40 : 140, y = 256 + (i % 6) * 30;
@@ -237,7 +281,8 @@ const UI = {
     ctx.globalAlpha = a;
     const sc = 1 + (1 - a) * 0.08;
     ctx.save(); ctx.translate(W / 2, H / 2 + 14); ctx.scale(sc, sc);
-    UI.text(ctx, 'THY OATH IS BROKEN', 0, 0, 52, '#9a1410');
+    UI.text(ctx, g.turned ? 'THOU HAST TURNED' : 'THY OATH IS BROKEN', 0, 0, 52, '#9a1410');
+    if (g.turned) UI.text(ctx, 'The Weeping took you. Your embers are gone.', 0, 34, 14, '#b88a80', 'center', BODY_FONT);
     ctx.restore();
     if (t > 3) UI.text(ctx, Mobile.enabled ? 'tap to rise again' : 'press E to rise again', W / 2, H / 2 + 60, 13, '#8a7a62', 'center', BODY_FONT);
     ctx.globalAlpha = 1;

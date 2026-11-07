@@ -14,7 +14,7 @@ const MOTIONS = {
 
 const ENEMY_DEFS = {
   peasant: {
-    name: 'Hollowed Villager', hp: 70, poise: 30, speed: 55, runSpeed: 95, aggro: 300, scale: 0.96, embers: 28,
+    name: 'Infected Villager', infect: 1.0, hp: 70, poise: 30, speed: 55, runSpeed: 95, aggro: 300, scale: 0.96, embers: 28,
     weapon: 'club', coolMin: 0.9, coolMax: 2.0, bleedRes: 1.25,
     idle: { lean: 0.38, armF: 0.2, elbowF: 0.35, weap: 0.5, armB: -0.05, elbowB: 0.3, head: 0.25, legF: 0.25, kneeF: 0.35, legB: -0.2, kneeB: 0.3 },
     style: {
@@ -28,7 +28,7 @@ const ENEMY_DEFS = {
     ],
   },
   footman: {
-    name: 'Fallen Garrison', hp: 125, poise: 60, speed: 62, runSpeed: 110, aggro: 340, scale: 1.02, embers: 65,
+    name: 'Infected Garrison', infect: 1.0, hp: 125, poise: 60, speed: 62, runSpeed: 110, aggro: 340, scale: 1.02, embers: 65,
     weapon: 'shortsword', shield: true, blockChance: 0.5, coolMin: 0.8, coolMax: 1.6, bleedRes: 0.9,
     idle: { lean: 0.1, armF: 0.75, elbowF: 0.9, weap: 1.9, armB: 1.15, elbowB: 0.55, legF: 0.35, kneeF: 0.35, legB: -0.3, kneeB: 0.15 },
     style: {
@@ -43,7 +43,7 @@ const ENEMY_DEFS = {
     ],
   },
   flagellant: {
-    name: 'Red Flagellant', hp: 85, poise: 26, speed: 105, runSpeed: 175, aggro: 380, scale: 0.98, embers: 50,
+    name: 'Red Flagellant', infect: 1.1, hp: 85, poise: 26, speed: 105, runSpeed: 175, aggro: 380, scale: 0.98, embers: 50,
     weapon: 'knife', dual: true, selfBleed: true, coolMin: 0.5, coolMax: 1.2, bleedRes: 1.4,
     idle: { lean: 0.35, armF: 1.0, elbowF: 1.2, weap: 2.0, armB: 0.8, elbowB: 1.4, weapB: 2.2, legF: 0.4, kneeF: 0.6, legB: -0.3, kneeB: 0.5 },
     style: {
@@ -59,7 +59,7 @@ const ENEMY_DEFS = {
     ],
   },
   plaguedoc: {
-    name: 'Beaked Physician', hp: 105, poise: 40, speed: 64, runSpeed: 118, aggro: 340, scale: 1.0, embers: 72,
+    name: 'Beaked Physician', infect: 1.2, hp: 105, poise: 40, speed: 64, runSpeed: 118, aggro: 340, scale: 1.0, embers: 72,
     weapon: 'staff', coolMin: 0.9, coolMax: 1.7, bleedRes: 1.0,
     idle: { lean: 0.22, armF: 0.95, elbowF: 0.55, weap: 2.7, armB: 0.4, elbowB: 1.2, legF: 0.3, kneeF: 0.3, legB: -0.25, kneeB: 0.15, head: 0.15 },
     style: {
@@ -73,7 +73,7 @@ const ENEMY_DEFS = {
     ],
   },
   brute: {
-    name: 'Sackhead Butcher', hp: 240, poise: 150, speed: 44, runSpeed: 72, aggro: 300, scale: 1.3, embers: 145,
+    name: 'Sackhead Butcher', infect: 0.9, hp: 240, poise: 150, speed: 44, runSpeed: 72, aggro: 300, scale: 1.3, embers: 145,
     weapon: 'maul', armor: true, coolMin: 1.1, coolMax: 2.0, bleedRes: 0.85,
     idle: { lean: 0.2, armF: 0.4, elbowF: 0.4, weap: 0.6, armB: 0.2, elbowB: 0.5, legF: 0.4, kneeF: 0.35, legB: -0.35, kneeB: 0.2 },
     style: {
@@ -87,7 +87,7 @@ const ENEMY_DEFS = {
     ],
   },
   templar: {
-    name: 'Templar of the Red Lantern', hp: 180, poise: 90, speed: 60, runSpeed: 105, aggro: 360, scale: 1.06, embers: 115,
+    name: 'Templar of the Red Lantern', infect: 0.8, hp: 180, poise: 90, speed: 60, runSpeed: 105, aggro: 360, scale: 1.06, embers: 115,
     weapon: 'mace', shield: true, blockChance: 0.65, coolMin: 0.7, coolMax: 1.4, bleedRes: 0.7,
     idle: { lean: 0.08, armF: 0.8, elbowF: 0.9, weap: 2.1, armB: 1.2, elbowB: 0.5, legF: 0.35, kneeF: 0.35, legB: -0.3, kneeB: 0.15 },
     style: {
@@ -103,7 +103,7 @@ const ENEMY_DEFS = {
     ],
   },
   crawler: {
-    name: 'Grave Crawler', hp: 45, poise: 20, speed: 30, runSpeed: 36, aggro: 260, scale: 0.92, embers: 18,
+    name: 'Grave Crawler', infect: 1.6, hp: 45, poise: 20, speed: 30, runSpeed: 36, aggro: 260, scale: 0.92, embers: 18,
     legless: true, coolMin: 0.8, coolMax: 1.6, bleedRes: 1.5,
     idle: { lean: 0, armF: 2.6, elbowF: -0.4, armB: 2.6, elbowB: -0.4 },
     style: {
@@ -112,6 +112,33 @@ const ENEMY_DEFS = {
       hand: '#7d7a70', limbW: 5.5, hipW: 7, shW: 9, wounds: true,
     },
     attacks: [],
+  },
+  carrier: { // bloated with the Weeping; bursts when it dies
+    name: 'Bloated Carrier', infect: 1.4, hp: 95, poise: 70, speed: 40, runSpeed: 60, aggro: 280, scale: 1.16, embers: 60,
+    burst: true, coolMin: 1.0, coolMax: 1.8, bleedRes: 1.3,
+    idle: { lean: 0.15, armF: 0.5, elbowF: 0.6, armB: 0.3, elbowB: 0.6, legF: 0.45, kneeF: 0.4, legB: -0.4, kneeB: 0.25, head: 0.3 },
+    style: {
+      helm: 'bare', skin: '#8a9474', hair: '#2a2a1c', eye: '#ffb030', armor: '#8a9474', armorDark: '#717a5e', armorLight: '#9aa484',
+      body: '#5a5a3a', tabard: '#3a3622', tabardLen: 14, leg: '#3c3a28', legDark: '#2c2a1c', boot: '#20201a', bootDark: '#181812',
+      hand: '#8a9474', limbW: 8.5, hipW: 13, shW: 13, belly: true, pustules: true,
+    },
+    attacks: [],
+  },
+  fallensister: { // a Sister of Saint Ysolde the Weeping took
+    name: 'Weeping Sister', infect: 1.2, hp: 92, poise: 30, speed: 100, runSpeed: 165, aggro: 360, scale: 0.96, embers: 70,
+    weapon: 'knife', dual: true, coolMin: 0.5, coolMax: 1.1, bleedRes: 1.2,
+    idle: { lean: 0.3, armF: 0.9, elbowF: 1.3, weap: 2.0, armB: 0.7, elbowB: 1.4, weapB: 2.2, legF: 0.35, kneeF: 0.4, legB: -0.25, kneeB: 0.3, head: 0.3 },
+    style: {
+      helm: 'veil', veil: '#141014', band: '#b8aea2', hair: '#cfc8c0', eyeCol: '#ff3020', weeping: true, skin: '#b8a698',
+      armor: '#16121a', armorDark: '#0e0b10', armorLight: '#241e28', body: '#18141c', tabard: '#18141c', tabardLen: 34,
+      leg: '#141016', legDark: '#0e0b10', boot: '#0a080a', bootDark: '#080608', hand: '#b8a698', limbW: 5.5, hipW: 7.5, shW: 8.5,
+      collar: '#a89e92', cuffs: '#a89e92', frill: '#a89e92', blood: true, flare: 1.6, lacing: true,
+    },
+    attacks: [
+      { id: 'rend', motion: 'stab', windup: 0.3, active: 0.09, recover: 0.16, dmg: 10, poise: 10, reach: 58, yTop: -95, range: 54, lunge: 150, next: 'rend2' },
+      { id: 'rend2', motion: 'over', windup: 0.16, active: 0.1, recover: 0.55, dmg: 14, poise: 18, reach: 60, yTop: -110, range: 0, lunge: 160, chained: true },
+      { id: 'lunge', motion: 'stab', windup: 0.42, active: 0.14, recover: 0.6, dmg: 16, poise: 20, reach: 60, yTop: -100, range: 170, minRange: 100, lunge: 400 },
+    ],
   },
   headsman: {
     boss: true, name: 'Gaul, the Penitent Headsman', hp: 1050, poise: 230, speed: 62, runSpeed: 115, aggro: 2000, scale: 1.55, embers: 1500,
@@ -225,12 +252,23 @@ class Enemy {
 
     const dx = p.x - this.x, dist = Math.abs(dx);
     const spdMul = this.speedMul;
+    const aggro = this.def.aggro * 1.15; // the Weeping makes them hunt further
     switch (this.state) {
       case 'dormant': this.vx = 0; break;
       case 'idle':
         this.vx = 0;
-        if (this.kind === 'peasant' && dist < 500 && chance(dt * 0.25)) Sfx.play('groan');
-        if (!p.dead && dist < this.def.aggro && (dist < this.def.aggro * 0.6 || this.facing === Math.sign(dx) || this.sinceHit < 1)) {
+        // the infected are restless: they pace and twitch instead of standing still
+        if (this.idleMode === 'stand' && !this.boss) {
+          this.wanderT = (this.wanderT === undefined ? rand(0.5, 2) : this.wanderT) - dt;
+          if (this.wanderT <= 0) { this.wanderT = rand(1.4, 3.4); this.wanderTo = this.spawn.x + rand(-90, 90); }
+          if (this.wanderTo !== undefined && Math.abs(this.wanderTo - this.x) > 8) {
+            this.facing = Math.sign(this.wanderTo - this.x);
+            this.vx = this.facing * this.def.speed * (this.crippled ? 0.6 : 0.5);
+            this.walkPhase += dt * Math.abs(this.vx) * 0.06;
+          }
+        }
+        if ((this.kind === 'peasant' || this.kind === 'carrier') && dist < 500 && chance(dt * 0.25)) Sfx.play('groan');
+        if (!p.dead && dist < aggro && (dist < aggro * 0.6 || this.facing === Math.sign(dx) || this.sinceHit < 1)) {
           this.state = 'chase'; this.st = 0; this.idleMode = 'stand';
         }
         break;
@@ -238,12 +276,12 @@ class Enemy {
         const hd = this.spawn.x - this.x;
         if (Math.abs(hd) < 6) { this.state = 'idle'; this.vx = 0; this.facing = this.spawn.facing || -1; break; }
         this.facing = Math.sign(hd); this.vx = this.facing * this.def.speed * (this.crippled ? 0.3 : 1);
-        if (!p.dead && dist < this.def.aggro * 0.6) this.state = 'chase';
+        if (!p.dead && dist < aggro * 0.6) this.state = 'chase';
         break;
       }
       case 'chase': {
         if (p.dead) { this.state = this.boss ? 'idle' : 'return'; break; }
-        if (!this.boss && dist > this.def.aggro * 2.2) { this.state = 'return'; break; }
+        if (!this.boss && dist > aggro * 3) { this.state = 'return'; break; }
         this.facePlayer(p);
         const atk = this.chooseAttack(dist);
         const range = this.crippled ? 52 : (this.hasWeapon ? Math.min(...this.def.attacks.filter(a => !a.chained && !a.minRange).map(a => a.range)) : 46);
@@ -535,6 +573,18 @@ class Enemy {
     this.fallFrom = this.body.rot;
     this.oxFrom = this.body.ox; this.oyFrom = this.body.oy;
     Sfx.play('enemyDie');
+    if (this.def.burst) { // the carrier ruptures in a spray of infected bile
+      const c = this.worldPoint(this.joints.chest);
+      FX.blood(c.x, c.y, -Math.PI / 2, 1.5, 480, 70, 1.4, ['#6b7a2a', '#4a5a18', '#7a0505', '#8a9a3a']);
+      FX.mist(c.x, c.y, 10);
+      Sfx.play('hemorrhage'); FX.addShake(8);
+      const pl = g.player;
+      if (!pl.dead && Math.abs(pl.x - this.x) < 110 && pl.state !== 'execute' && !(pl.state === 'roll' && pl.iframe)) {
+        pl.addInfection(22);
+        pl.hurt(10, this, { noInfect: true });
+        FX.text(pl.x, GROUND - 120, 'INFECTED BILE', '#a8c060', 14);
+      }
+    }
     g.onEnemyKilled(this, o);
   }
 
@@ -595,6 +645,8 @@ class Enemy {
       case 'idle': {
         const b = Math.sin(this.st * 2 + this.walkPhase) * 0.04;
         tgt = Object.assign({}, this.idlePose()); tgt.lean += b;
+        if (Math.abs(this.vx) > 1) tgt = walkPose(tgt, this.walkPhase, 0.4, 0.05);
+        tgt.head = (tgt.head || 0) + (Math.sin(this.st * 23) > 0.96 ? 0.35 : 0); // a sudden twitch
         if (this.idleMode === 'feed') { tgt.armF += Math.sin(this.st * 9) * 0.3; tgt.head += Math.sin(this.st * 9) * 0.1; }
         break;
       }

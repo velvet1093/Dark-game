@@ -70,163 +70,173 @@ class Fairy {
     return 'Careful, she bites. ...Wren, I mean. Not me.';
   }
 
+  // Chibi fairy, drawn with soft cel shading and a violet outline so she reads at a glance.
   draw(ctx, t) {
-    const L = this.look, s = Mobile.enabled ? 1.5 : 1.35;
-    const flap = Math.sin(this.t * 32);
+    const L = this.look, sc = Mobile.enabled ? 1.25 : 1.1;
+    const OL = '#3b2858';                       // outline
+    const T = this.t, flap = Math.sin(T * 30), talking = !!this.bubble;
+    const sway = Math.sin(T * 2.2) * 1.6 - clamp(this.vx / 70, -3, 3) * this.facing;
+    const line = (w = 0.9) => { ctx.strokeStyle = OL; ctx.lineWidth = w; ctx.stroke(); };
     ctx.save();
     ctx.translate(this.x, this.y);
-    // glow
+    // soft glow
     ctx.globalCompositeOperation = 'lighter';
-    const gr = ctx.createRadialGradient(0, -8, 1, 0, -8, 40);
-    gr.addColorStop(0, `rgba(${L.glow},0.38)`); gr.addColorStop(1, `rgba(${L.glow},0)`);
-    ctx.fillStyle = gr; ctx.fillRect(-40, -48, 80, 80);
+    const gr = ctx.createRadialGradient(0, -16, 2, 0, -16, 54);
+    gr.addColorStop(0, `rgba(${L.glow},0.42)`); gr.addColorStop(1, `rgba(${L.glow},0)`);
+    ctx.fillStyle = gr; ctx.fillRect(-54, -70, 108, 108);
     ctx.globalCompositeOperation = 'source-over';
-    ctx.scale(this.facing * s, s);
-    const tilt = clamp(this.vx / 400, -0.35, 0.35) * this.facing;
-    ctx.rotate(tilt);
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.scale(this.facing * sc, sc);
+    ctx.rotate(clamp(this.vx / 500, -0.3, 0.3) * this.facing);
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
 
-    // --- four dragonfly wings (behind the body)
-    const wing = (ang, len, wid, sc) => {
-      ctx.save(); ctx.translate(-2, -15); ctx.rotate(ang); ctx.scale(1, sc);
-      ctx.fillStyle = 'rgba(205,182,255,0.42)';
-      ctx.beginPath(); ctx.ellipse(-len / 2, 0, len / 2, wid, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = 'rgba(245,238,255,0.85)'; ctx.lineWidth = 0.7; ctx.stroke();
-      ctx.strokeStyle = 'rgba(170,140,240,0.7)'; ctx.lineWidth = 0.5;
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-len * 0.95, 0);
-      ctx.moveTo(-len * 0.3, 0); ctx.lineTo(-len * 0.55, -wid * 0.7); ctx.moveTo(-len * 0.5, 0); ctx.lineTo(-len * 0.75, wid * 0.6); ctx.stroke();
+    // ---------------- wings
+    const wing = (ax, ay, ang, len, wid, k) => {
+      ctx.save(); ctx.translate(ax, ay); ctx.rotate(ang); ctx.scale(1, k);
+      const wg = ctx.createLinearGradient(0, 0, -len, 0);
+      wg.addColorStop(0, 'rgba(176,140,240,0.75)'); wg.addColorStop(0.6, 'rgba(210,190,255,0.55)'); wg.addColorStop(1, 'rgba(250,245,255,0.75)');
+      ctx.fillStyle = wg;
+      ctx.beginPath(); ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(-len * 0.3, -wid * 1.2, -len * 0.9, -wid, -len, -wid * 0.1);
+      ctx.bezierCurveTo(-len * 0.85, wid * 0.8, -len * 0.3, wid * 0.7, 0, 0);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(120,90,190,0.9)'; ctx.lineWidth = 0.8; ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 0.5;
+      ctx.beginPath(); ctx.moveTo(-2, 0); ctx.quadraticCurveTo(-len * 0.5, -wid * 0.3, -len * 0.92, -wid * 0.1);
+      ctx.moveTo(-len * 0.35, -wid * 0.15); ctx.lineTo(-len * 0.55, -wid * 0.75);
+      ctx.moveTo(-len * 0.55, -wid * 0.2); ctx.lineTo(-len * 0.75, wid * 0.45); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.beginPath(); ctx.arc(-len * 0.7, -wid * 0.35, 0.9, 0, Math.PI * 2); ctx.arc(-len * 0.45, wid * 0.25, 0.6, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     };
-    const sc = 0.55 + Math.abs(flap) * 0.45;
-    wing(0.55, 26, 6, sc); wing(-0.25, 20, 4.5, sc); // far pair
-    // --- long white hair flowing behind: layered locks with strand texture
-    const sway = Math.sin(this.t * 2.4) * 2 - clamp(this.vx / 60, -4, 4) * this.facing;
-    const hg = ctx.createLinearGradient(0, -28, 0, 4);
-    hg.addColorStop(0, '#ffffff'); hg.addColorStop(0.55, '#f1edfa'); hg.addColorStop(1, '#d9cff2'); // tips catch the lavender glow
-    const lock = (x0, y0, cx, cy, ex, ey, w, col) => {
-      ctx.fillStyle = col;
-      ctx.beginPath(); ctx.moveTo(x0 - w, y0);
-      ctx.quadraticCurveTo(cx - w, cy, ex, ey);
-      ctx.quadraticCurveTo(cx + w * 0.6, cy, x0 + w, y0);
-      ctx.closePath(); ctx.fill();
-    };
-    // back layer (shadowed), then the main mass
-    lock(-1, -25, -10 + sway * 0.4, -12, -9 + sway * 1.4, 4, 3.4, '#cfc6e6');
-    lock(-2, -26, -11 + sway * 0.5, -14, -12 + sway * 1.6, 0, 3.0, '#ddd6ef');
-    lock(0, -26, -8 + sway * 0.4, -12, -6 + sway * 1.2, 5, 3.6, hg);
-    lock(-1, -27, -9 + sway * 0.3, -16, -10 + sway, -3, 3.2, hg);
-    lock(1, -25, -5 + sway * 0.3, -10, -3 + sway, 3, 2.4, hg);
-    // strand lines
-    ctx.strokeStyle = 'rgba(160,145,200,0.55)'; ctx.lineWidth = 0.35;
-    for (const [ox, ex, ey] of [[-2, -8.5, 3], [-3.5, -10.5, 0], [-0.5, -6, 4], [-4.5, -11.5, -2], [0.5, -4, 2]]) {
-      ctx.beginPath(); ctx.moveTo(ox, -24); ctx.quadraticCurveTo(ox - 5 + sway * 0.3, -13, ex + sway * 1.3, ey); ctx.stroke();
-    }
-    // sheen
-    ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 0.6;
-    ctx.beginPath(); ctx.moveTo(-3, -21); ctx.quadraticCurveTo(-6 + sway * 0.2, -15, -6 + sway * 0.6, -10); ctx.stroke();
-
-    // --- legs (white stockings, lavender shoes) peeking under the dress
-    const kick = Math.sin(this.t * 3) * 0.3;
-    ctx.strokeStyle = '#f4f0fa'; ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.moveTo(-1, -3); ctx.lineTo(-2 - kick * 3, 3); ctx.moveTo(1.5, -3); ctx.lineTo(3 + kick * 2, 2.5); ctx.stroke();
-    ctx.fillStyle = L.dressDark; ctx.beginPath(); ctx.arc(-2.2 - kick * 3, 3.6, 1.2, 0, Math.PI * 2); ctx.arc(3.2 + kick * 2, 3, 1.2, 0, Math.PI * 2); ctx.fill();
-
-    // --- long dress: fitted bodice, flared skirt with lace hem
-    ctx.fillStyle = L.dress;
-    ctx.beginPath();
-    ctx.moveTo(-2.4, -19); ctx.lineTo(2.6, -19);
-    ctx.quadraticCurveTo(3.4, -13, 7, -2.5);
-    ctx.quadraticCurveTo(0.5, 0.5, -6.5, -2.5);
-    ctx.quadraticCurveTo(-3.4, -13, -2.4, -19);
-    ctx.fill();
-    ctx.fillStyle = L.dressDark; // fold shading
-    ctx.beginPath(); ctx.moveTo(0, -12); ctx.quadraticCurveTo(-2, -6, -4.5, -2.2); ctx.lineTo(-2, -1.5); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = L.trim; // scalloped lace hem
-    for (let i = -6; i <= 6; i += 2.2) { ctx.beginPath(); ctx.arc(i + 0.4, -2.1 + Math.abs(i) * 0.05, 1.25, 0, Math.PI); ctx.fill(); }
-    ctx.fillRect(-2.6, -19.6, 5.3, 1.4);            // white collar
-    ctx.fillStyle = L.ribbon;                         // bow at the chest
-    ctx.beginPath(); ctx.moveTo(0.2, -16.6); ctx.lineTo(-2, -17.8); ctx.lineTo(-2, -15.4); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(0.2, -16.6); ctx.lineTo(2.4, -17.8); ctx.lineTo(2.4, -15.4); ctx.closePath(); ctx.fill();
-    ctx.fillRect(-2.3, -13.2, 4.8, 1.1);              // sash
-
-    // --- near pair of wings (in front of the hair, behind the arms)
-    wing(0.75, 24, 5.5, sc * 0.95); wing(-0.05, 17, 4, sc * 0.95);
-
-    // --- arms in puffed sleeves, one waving
-    const wave = this.bubble ? Math.sin(this.t * 10) * 0.5 : Math.sin(this.t * 1.5) * 0.15;
-    const arm = (ang, front) => {
-      ctx.save(); ctx.translate(front ? 1.6 : -1.6, -17.8); ctx.rotate(ang);
-      ctx.fillStyle = front ? L.dress : L.dressDark; ctx.beginPath(); ctx.ellipse(0, 1.8, 2, 2.4, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = front ? L.dress : L.dressDark; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(0, 3); ctx.lineTo(0, 7.5); ctx.stroke();
-      ctx.fillStyle = L.trim; ctx.fillRect(-1, 7, 2, 1);
-      ctx.fillStyle = '#f2dccd'; ctx.beginPath(); ctx.arc(0, 9, 1, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-    };
-    arm(0.5, false);
-    arm(-2.4 + wave, true);
-
-    // --- head
-    ctx.fillStyle = '#f3ddd0'; ctx.beginPath(); ctx.arc(0.6, -23.6, 4.4, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(200,150,150,0.25)'; ctx.beginPath(); ctx.arc(-0.6, -22.4, 3.6, Math.PI * 0.5, Math.PI * 1.2); ctx.fill(); // cheek shade
-    ctx.fillStyle = '#f3ddd0';
-    ctx.beginPath(); ctx.moveTo(3, -24.5); ctx.lineTo(7.2, -27.5); ctx.lineTo(3.6, -22.6); ctx.fill(); // pointed ear
-    ctx.fillStyle = 'rgba(220,150,150,0.5)'; ctx.beginPath(); ctx.moveTo(3.6, -24.2); ctx.lineTo(6.2, -26.6); ctx.lineTo(3.9, -23.2); ctx.fill();
-    // crown of the hair with a soft halo of sheen
-    const cg = ctx.createLinearGradient(0, -29, 0, -21);
-    cg.addColorStop(0, '#ffffff'); cg.addColorStop(1, '#e9e4f6');
-    ctx.fillStyle = cg;
-    ctx.beginPath(); ctx.arc(0.2, -24.4, 4.9, Math.PI * 0.92, Math.PI * 2.05); ctx.closePath(); ctx.fill();
-    // bangs: separate pointed locks
-    ctx.beginPath();
-    ctx.moveTo(-4.4, -24.6);
-    ctx.quadraticCurveTo(-3.6, -22, -3.9, -20.8);   // side lock tip
-    ctx.lineTo(-2.2, -23.6);
-    ctx.lineTo(-1.1, -21.4); ctx.lineTo(0.1, -24.4);
-    ctx.lineTo(1.3, -21.9); ctx.lineTo(2.2, -24.6);
-    ctx.lineTo(3.4, -22.6); ctx.lineTo(4.3, -24.6);
-    ctx.lineTo(4.9, -24.8);
-    ctx.lineTo(4.6, -26.6); ctx.lineTo(-4.2, -26.6);
-    ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(170,155,205,0.6)'; ctx.lineWidth = 0.3;
-    for (const [a, b] of [[-0.6, -21.8], [0.9, -22.3], [2.8, -23], [-2.5, -22.8]]) { ctx.beginPath(); ctx.moveTo(a - 0.6, -26.4); ctx.lineTo(a, b); ctx.stroke(); }
-    ctx.strokeStyle = 'rgba(255,255,255,0.95)'; ctx.lineWidth = 0.55; // angel ring sheen
-    ctx.beginPath(); ctx.arc(0.2, -24.4, 4, Math.PI * 1.2, Math.PI * 1.65); ctx.stroke();
-    // eye: sclera, gradient iris, pupil, highlights, lashes; blinks now and then
-    const blink = (this.t % 3.7) < 0.12;
-    const ex = 2.75, ey = -22.7;
-    if (blink) {
-      ctx.strokeStyle = '#4a3050'; ctx.lineWidth = 0.55;
-      ctx.beginPath(); ctx.arc(ex, ey - 0.2, 1.2, 0.2, Math.PI - 0.2); ctx.stroke();
-    } else {
-      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.ellipse(ex, ey, 1.25, 1.7, 0, 0, Math.PI * 2); ctx.fill();
-      const ig = ctx.createLinearGradient(0, ey - 1.6, 0, ey + 1.6);
-      ig.addColorStop(0, '#3e2470'); ig.addColorStop(0.55, L.eye); ig.addColorStop(1, '#d6c2ff');
-      ctx.fillStyle = ig; ctx.beginPath(); ctx.ellipse(ex + 0.25, ey + 0.1, 1.0, 1.5, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#1e1030'; ctx.beginPath(); ctx.ellipse(ex + 0.3, ey + 0.05, 0.42, 0.7, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath(); ctx.arc(ex - 0.05, ey - 0.6, 0.38, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(ex + 0.65, ey + 0.65, 0.18, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#2a1830'; ctx.lineWidth = 0.6; // upper lash line with a flick
-      ctx.beginPath(); ctx.moveTo(ex - 1.35, ey - 1.0); ctx.quadraticCurveTo(ex, ey - 2.2, ex + 1.5, ey - 1.1); ctx.lineTo(ex + 1.95, ey - 1.6); ctx.stroke();
-      ctx.strokeStyle = 'rgba(80,50,90,0.5)'; ctx.lineWidth = 0.3;
-      ctx.beginPath(); ctx.moveTo(ex - 0.6, ey + 1.65); ctx.lineTo(ex + 0.9, ey + 1.5); ctx.stroke();
-    }
-    ctx.strokeStyle = 'rgba(190,175,215,0.8)'; ctx.lineWidth = 0.35; // pale brow
-    ctx.beginPath(); ctx.moveTo(ex - 1, ey - 3.1); ctx.quadraticCurveTo(ex + 0.3, ey - 3.6, ex + 1.6, ey - 3.0); ctx.stroke();
-    ctx.fillStyle = 'rgba(240,140,170,0.5)'; ctx.beginPath(); ctx.ellipse(1.5, -20.6, 1.1, 0.6, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#a0607a'; ctx.lineWidth = 0.45; ctx.beginPath(); ctx.arc(3.5, -20.4, 0.7, 0.2, Math.PI * 0.9); ctx.stroke();
-    // a side lock falling in front of the shoulder
+    const wk = 0.45 + Math.abs(flap) * 0.55;
+    wing(-3, -17, 0.75, 30, 10, wk); wing(-3, -14, -0.15, 21, 7, wk);       // far pair
+    // ---------------- back hair (long, flowing)
+    const hg = ctx.createLinearGradient(0, -36, 0, 0);
+    hg.addColorStop(0, '#ffffff'); hg.addColorStop(0.6, '#f0ecfa'); hg.addColorStop(1, '#cdbff0');
     ctx.fillStyle = hg;
-    ctx.beginPath(); ctx.moveTo(-0.5, -25); ctx.quadraticCurveTo(-3.6, -20, -2.6 + sway * 0.3, -13.5); ctx.lineTo(-1.4 + sway * 0.3, -14.5); ctx.quadraticCurveTo(-1.6, -20, 0.6, -24); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(160,145,200,0.5)'; ctx.lineWidth = 0.3;
-    ctx.beginPath(); ctx.moveTo(-0.6, -23.5); ctx.quadraticCurveTo(-2.6, -19, -2.1 + sway * 0.3, -14.3); ctx.stroke();
-    // frilled white headband with lavender ribbons
-    ctx.fillStyle = L.trim;
-    ctx.beginPath(); ctx.arc(0.3, -24.2, 5.4, Math.PI * 1.08, Math.PI * 1.85); ctx.arc(0.3, -24.2, 4.4, Math.PI * 1.85, Math.PI * 1.08, true); ctx.fill();
-    for (let a = 1.1; a < 1.86; a += 0.13) { ctx.beginPath(); ctx.arc(0.3 + Math.cos(a * Math.PI) * 5.6, -24.2 + Math.sin(a * Math.PI) * 5.6, 0.9, 0, Math.PI * 2); ctx.fill(); }
+    ctx.beginPath();
+    ctx.moveTo(6, -33);
+    ctx.bezierCurveTo(-6, -38, -14, -30, -12, -20);
+    ctx.bezierCurveTo(-13 + sway, -12, -15 + sway * 1.4, -6, -12 + sway * 1.8, 1);
+    ctx.lineTo(-9 + sway * 1.5, -3); ctx.lineTo(-7 + sway * 1.5, 2);
+    ctx.lineTo(-5 + sway * 1.2, -4); ctx.lineTo(-2 + sway, 0);
+    ctx.bezierCurveTo(-2, -10, 2, -16, 4, -20);
+    ctx.closePath(); ctx.fill(); line();
+    ctx.strokeStyle = 'rgba(150,130,200,0.55)'; ctx.lineWidth = 0.45;
+    for (const [a, b] of [[-8, -1], [-10.5, -3], [-5, -2], [-12, -6]]) { ctx.beginPath(); ctx.moveTo(-6, -28); ctx.quadraticCurveTo(a - 3 + sway * 0.5, -14, b + a * 0.2 + sway * 1.5 + 4, b); ctx.stroke(); }
+
+    // ---------------- legs
+    const kick = Math.sin(T * 3.2) * 0.35;
+    ctx.save(); ctx.translate(-1.5, -3); ctx.rotate(0.25 + kick);
+    ctx.fillStyle = '#fbf8ff'; ctx.fillRect(-1.1, 0, 2.2, 6); ctx.strokeStyle = OL; ctx.lineWidth = 0.6; ctx.strokeRect(-1.1, 0, 2.2, 6);
+    ctx.fillStyle = L.dressDark; ctx.beginPath(); ctx.ellipse(0.6, 6.6, 1.9, 1.2, 0, 0, Math.PI * 2); ctx.fill(); line(0.6);
+    ctx.restore();
+    ctx.save(); ctx.translate(2, -3); ctx.rotate(-0.2 - kick * 0.6);
+    ctx.fillStyle = '#fbf8ff'; ctx.fillRect(-1.1, 0, 2.2, 6.5); ctx.strokeStyle = OL; ctx.lineWidth = 0.6; ctx.strokeRect(-1.1, 0, 2.2, 6.5);
+    ctx.fillStyle = L.dressDark; ctx.beginPath(); ctx.ellipse(0.8, 7, 1.9, 1.2, 0, 0, Math.PI * 2); ctx.fill(); line(0.6);
+    ctx.restore();
+
+    // ---------------- dress: white petticoat frill, bell skirt, apron, bodice
+    ctx.fillStyle = '#fbf8ff';
+    ctx.beginPath(); for (let i = -9; i <= 9; i += 2.25) ctx.arc(i, -2.6 + Math.abs(i) * 0.06, 1.6, 0, Math.PI * 2); ctx.fill();
+    const dg = ctx.createLinearGradient(-9, 0, 9, 0);
+    dg.addColorStop(0, L.dressDark); dg.addColorStop(0.55, L.dress); dg.addColorStop(1, L.dressDark);
+    ctx.fillStyle = dg;
+    ctx.beginPath(); ctx.moveTo(-3.6, -17); ctx.lineTo(3.8, -17);
+    ctx.bezierCurveTo(5, -12, 9, -7, 9.5, -3.4);
+    ctx.quadraticCurveTo(0, -1.2, -9.5, -3.4);
+    ctx.bezierCurveTo(-9, -7, -5, -12, -3.6, -17);
+    ctx.closePath(); ctx.fill(); line();
+    // apron with a frilled edge
+    ctx.fillStyle = '#fdfbff';
+    ctx.beginPath(); ctx.moveTo(-1, -12.5); ctx.lineTo(4.4, -12.5); ctx.quadraticCurveTo(7, -7, 6.4, -4.2); ctx.quadraticCurveTo(2, -3, -2.4, -4.4); ctx.quadraticCurveTo(-2.6, -8, -1, -12.5); ctx.fill(); line(0.6);
+    ctx.fillStyle = '#ffffff';
+    for (let i = -2; i <= 6; i += 1.6) { ctx.beginPath(); ctx.arc(i, -4 + (i - 2) * (i - 2) * 0.02, 0.8, 0, Math.PI); ctx.fill(); }
+    // bodice, collar and bow
+    ctx.fillStyle = L.dress; ctx.beginPath(); ctx.moveTo(-3.6, -17); ctx.lineTo(3.8, -17); ctx.lineTo(4.4, -12.4); ctx.lineTo(-3.2, -12.4); ctx.closePath(); ctx.fill(); line(0.6);
+    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(-3.4, -17.6); ctx.quadraticCurveTo(0.4, -14.4, 4.2, -17.6); ctx.lineTo(3.4, -18.6); ctx.lineTo(-2.6, -18.6); ctx.closePath(); ctx.fill(); line(0.5);
     ctx.fillStyle = L.ribbon;
-    ctx.beginPath(); ctx.moveTo(-4.2, -26); ctx.lineTo(-7, -27.5); ctx.lineTo(-6.6, -24.6); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(-4.2, -26); ctx.lineTo(-6.4, -22.4 + sway * 0.3); ctx.lineTo(-5, -22.8); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0.4, -16); ctx.lineTo(-2.2, -17.4); ctx.lineTo(-2, -14.6); ctx.closePath(); ctx.fill(); line(0.4);
+    ctx.beginPath(); ctx.moveTo(0.4, -16); ctx.lineTo(3, -17.4); ctx.lineTo(2.8, -14.6); ctx.closePath(); ctx.fill(); line(0.4);
+    ctx.beginPath(); ctx.moveTo(0, -15.6); ctx.lineTo(-1, -12.2); ctx.lineTo(0.4, -13.4); ctx.lineTo(1.6, -12.2); ctx.lineTo(0.8, -15.6); ctx.fill();
+
+    // ---------------- near pair of wings
+    wing(-2.5, -16, 0.95, 28, 9.5, wk * 0.95); wing(-2.5, -13, 0.05, 19, 6.5, wk * 0.95);
+
+    // ---------------- arms: puffed sleeves with white cuffs, the front one waving
+    const arm = (ox, ang, front) => {
+      ctx.save(); ctx.translate(ox, -16.2); ctx.rotate(ang);
+      ctx.fillStyle = front ? L.dress : L.dressDark; ctx.beginPath(); ctx.ellipse(0, 2, 2.6, 2.9, 0, 0, Math.PI * 2); ctx.fill(); line(0.6);
+      ctx.fillStyle = '#f6e2d8'; ctx.fillRect(-0.9, 4.2, 1.8, 4.2); ctx.strokeStyle = OL; ctx.lineWidth = 0.5; ctx.strokeRect(-0.9, 4.2, 1.8, 4.2);
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.ellipse(0, 4.6, 1.8, 0.9, 0, 0, Math.PI * 2); ctx.fill(); line(0.4);
+      ctx.fillStyle = '#f6e2d8'; ctx.beginPath(); ctx.arc(0, 9.2, 1.3, 0, Math.PI * 2); ctx.fill(); line(0.5);
+      ctx.restore();
+    };
+    arm(-2.8, 0.45, false);
+    arm(3.2, talking ? -2.6 + Math.sin(T * 11) * 0.45 : -0.5 + Math.sin(T * 1.6) * 0.15, true);
+
+    // ---------------- head
+    const hx = 1, hy = -27, R = 8.6;
+    ctx.fillStyle = '#f8e4d8'; ctx.beginPath(); ctx.ellipse(hx, hy, R, R * 0.96, 0, 0, Math.PI * 2); ctx.fill(); line();
+    // pointed elf ear
+    ctx.fillStyle = '#f8e4d8'; ctx.beginPath(); ctx.moveTo(hx + 5.5, hy - 1); ctx.lineTo(hx + 12, hy - 6.5); ctx.lineTo(hx + 7, hy + 2.5); ctx.closePath(); ctx.fill(); line(0.6);
+    ctx.fillStyle = 'rgba(240,150,170,0.5)'; ctx.beginPath(); ctx.moveTo(hx + 6.4, hy - 0.6); ctx.lineTo(hx + 10.4, hy - 4.6); ctx.lineTo(hx + 7.2, hy + 1.2); ctx.fill();
+    // eyes (3/4 view: near eye larger), blinking every few seconds
+    const blink = (T % 4.1) < 0.12;
+    const eye = (ex, ey, w, h) => {
+      if (blink) { ctx.strokeStyle = OL; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(ex, ey - 0.3, w, 0.15, Math.PI - 0.15); ctx.stroke(); return; }
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.ellipse(ex, ey, w, h, 0, 0, Math.PI * 2); ctx.fill();
+      const ig = ctx.createLinearGradient(0, ey - h, 0, ey + h);
+      ig.addColorStop(0, '#2e1658'); ig.addColorStop(0.5, L.eye); ig.addColorStop(1, '#e2d2ff');
+      ctx.fillStyle = ig; ctx.beginPath(); ctx.ellipse(ex + w * 0.12, ey + h * 0.05, w * 0.82, h * 0.9, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#1a0c30'; ctx.beginPath(); ctx.ellipse(ex + w * 0.15, ey, w * 0.36, h * 0.42, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.ellipse(ex - w * 0.25, ey - h * 0.4, w * 0.32, h * 0.26, -0.4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(ex + w * 0.4, ey + h * 0.45, w * 0.14, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#24123a'; ctx.lineWidth = 1.1; // thick upper lash with a flick
+      ctx.beginPath(); ctx.moveTo(ex - w * 1.1, ey - h * 0.55); ctx.quadraticCurveTo(ex, ey - h * 1.35, ex + w * 1.15, ey - h * 0.6); ctx.lineTo(ex + w * 1.5, ey - h * 0.9); ctx.stroke();
+    };
+    eye(hx + 4.4, hy + 0.6, 2.4, 3.3);
+    eye(hx - 1.4, hy + 0.4, 1.8, 3.0);
+    ctx.strokeStyle = 'rgba(180,160,215,0.9)'; ctx.lineWidth = 0.5; // brows
+    ctx.beginPath(); ctx.moveTo(hx + 2.6, hy - 4.6); ctx.quadraticCurveTo(hx + 4.6, hy - 5.4, hx + 6.6, hy - 4.6); ctx.moveTo(hx - 2.8, hy - 4.4); ctx.lineTo(hx - 0.4, hy - 4.8); ctx.stroke();
+    ctx.fillStyle = 'rgba(245,140,170,0.55)'; // blush
+    ctx.beginPath(); ctx.ellipse(hx + 5.2, hy + 4.6, 1.8, 0.9, 0, 0, Math.PI * 2); ctx.ellipse(hx - 2.4, hy + 4.4, 1.3, 0.8, 0, 0, Math.PI * 2); ctx.fill();
+    if (talking && Math.sin(T * 14) > -0.3) { // happy open mouth while she speaks
+      ctx.fillStyle = '#8a2a40'; ctx.beginPath(); ctx.moveTo(hx + 1.2, hy + 4.8); ctx.quadraticCurveTo(hx + 2.4, hy + 7.4, hx + 3.8, hy + 4.8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#f08aa0'; ctx.beginPath(); ctx.ellipse(hx + 2.5, hy + 6.2, 0.9, 0.5, 0, 0, Math.PI * 2); ctx.fill();
+    } else {
+      ctx.strokeStyle = '#8a3a50'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(hx + 1.4, hy + 5); ctx.quadraticCurveTo(hx + 2.5, hy + 6, hx + 3.6, hy + 5); ctx.stroke();
+    }
+    // ---------------- bangs, crown and side locks
+    ctx.fillStyle = hg;
+    ctx.beginPath();
+    ctx.moveTo(hx - R - 0.6, hy + 2);
+    ctx.bezierCurveTo(hx - R - 1.5, hy - R - 2, hx + R * 0.6, hy - R - 4, hx + R + 0.8, hy - 1.5);
+    ctx.lineTo(hx + 7.2, hy - 2.4); ctx.lineTo(hx + 6.6, hy + 0.4); ctx.lineTo(hx + 5, hy - 3.6);
+    ctx.lineTo(hx + 3.4, hy - 0.6); ctx.lineTo(hx + 2, hy - 4.4); ctx.lineTo(hx + 0.2, hy - 1.2);
+    ctx.lineTo(hx - 1.4, hy - 4.2); ctx.lineTo(hx - 3.2, hy - 1.4); ctx.lineTo(hx - 4.6, hy - 4);
+    ctx.lineTo(hx - 6.4, hy + 1);
+    ctx.closePath(); ctx.fill(); line();
+    ctx.strokeStyle = 'rgba(160,140,205,0.6)'; ctx.lineWidth = 0.45;
+    for (const bx of [-3.6, -0.6, 2.6, 5.6]) { ctx.beginPath(); ctx.moveTo(hx + bx - 1, hy - R + 0.5); ctx.lineTo(hx + bx + 0.4, hy - 2.4); ctx.stroke(); }
+    ctx.strokeStyle = 'rgba(255,255,255,1)'; ctx.lineWidth = 1; // angel-ring sheen
+    ctx.beginPath(); ctx.arc(hx, hy - 1, R - 1.6, Math.PI * 1.15, Math.PI * 1.6); ctx.stroke();
+    // side lock framing the face, falling to the chest
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.moveTo(hx - 6.4, hy - 1); ctx.bezierCurveTo(hx - 8.4, hy + 6, hx - 5.4 + sway * 0.3, hy + 11, hx - 6.6 + sway * 0.4, hy + 15);
+    ctx.lineTo(hx - 4.2 + sway * 0.4, hy + 12.5); ctx.bezierCurveTo(hx - 4.2, hy + 7, hx - 4.6, hy + 3, hx - 4.6, hy - 1); ctx.closePath(); ctx.fill(); line(0.7);
+    // ahoge: one stubborn strand on top
+    ctx.strokeStyle = OL; ctx.lineWidth = 0.9;
+    ctx.beginPath(); ctx.moveTo(hx + 1, hy - R - 2); ctx.quadraticCurveTo(hx + 4 + Math.sin(T * 4) * 1.5, hy - R - 9, hx + 7 + Math.sin(T * 4) * 2, hy - R - 6); ctx.stroke();
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 0.5; ctx.stroke();
+    // ---------------- frilled headband with lavender ribbons
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(hx, hy, R + 1.4, Math.PI * 1.1, Math.PI * 1.84); ctx.arc(hx, hy, R - 0.4, Math.PI * 1.84, Math.PI * 1.1, true); ctx.closePath(); ctx.fill(); line(0.6);
+    for (let a = 1.12; a < 1.85; a += 0.09) { ctx.beginPath(); ctx.arc(hx + Math.cos(a * Math.PI) * (R + 1.8), hy + Math.sin(a * Math.PI) * (R + 1.8), 1.15, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = L.ribbon;
+    ctx.beginPath(); ctx.moveTo(hx - R + 0.5, hy - 4); ctx.lineTo(hx - R - 4.5, hy - 7.5); ctx.lineTo(hx - R - 3.6, hy - 2.6); ctx.closePath(); ctx.fill(); line(0.5);
+    ctx.beginPath(); ctx.moveTo(hx - R + 0.5, hy - 4); ctx.lineTo(hx - R - 3 + sway * 0.4, hy + 3); ctx.lineTo(hx - R - 1, hy + 2.4); ctx.closePath(); ctx.fill(); line(0.5);
     ctx.restore();
   }
 
@@ -237,11 +247,11 @@ class Fairy {
     ctx.font = `12px ${BODY_FONT}`;
     const lines = wrapText(ctx, b.text, 190);
     const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + 18, h = lines.length * 15 + 22;
-    const x = clamp(this.x - w / 2, Game.viewL + 6, Game.viewR - w - 6), y = this.y - 50 - h;
+    const x = clamp(this.x - w / 2, Game.viewL + 6, Game.viewR - w - 6), y = this.y - 60 - h;
     ctx.fillStyle = 'rgba(28,18,42,0.88)';
     rr(ctx, x, y, w, h, 6); ctx.fill();
     ctx.strokeStyle = 'rgba(200,175,255,0.75)'; ctx.lineWidth = 1; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(this.x - 4, y + h); ctx.lineTo(this.x, y + h + 7); ctx.lineTo(this.x + 4, y + h); ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(this.x - 4, y + h); ctx.lineTo(this.x, y + h + 9); ctx.lineTo(this.x + 4, y + h); ctx.closePath();
     ctx.fillStyle = 'rgba(28,18,42,0.88)'; ctx.fill();
     ctx.fillStyle = '#c9b3ff'; ctx.font = `bold 9px ${TITLE_FONT}`; ctx.textAlign = 'left';
     ctx.fillText(this.name.toUpperCase(), x + 9, y + 12);
@@ -258,8 +268,12 @@ const FAIRY_HINTS = {
   lowhp: () => Mobile.enabled ? "You're bleeding everywhere! Drink a vial, the little jar button!" : "You're bleeding everywhere! Drink a vial! (Q)",
   novial: () => 'No vials left... Get back to a shrine, please!',
   note: () => "Something's written there. Read it?",
-  zone1: () => 'Hallowmere... it was so pretty once. Mind the fires.',
-  zone2: () => 'The cathedral. I can feel the Heart beating from here. I hate it.',
+  zone_town: () => 'Brackenford! Real people, with real hearths. The Sisters\' chapel is at the far end of town.',
+  zone_village: () => 'Hallowmere... it was so pretty once. Mind the fires.',
+  zone_mire: () => 'The Mire. Even the air feels sick. Don\'t let them bite you, and stay away from the fat ones when they fall.',
+  zone_cathedral: () => 'The cathedral. I can feel the Heart beating from here. Every beat makes more of them.',
+  infect: () => 'That red under your skin... it\'s spreading. The Sisters can draw it out. Please don\'t wait too long.',
+  turning: () => 'No, no, no, it\'s taking you! Drink a tonic or get to a Sister, NOW!',
   gate: () => "That fog... he's behind it. I can't follow you in there. Come back to me, alright?",
   respawn: () => 'Up you get! Your embers are still glowing where you fell.',
   bossdead: () => 'You did it! ...Oh, Gaul. Rest now.',

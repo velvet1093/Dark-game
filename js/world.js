@@ -1,34 +1,55 @@
 'use strict';
 // ---------------------------------------------------------------------------
 // The valley of Vael — level layout, scenery and props
+// Five regions, west to east:
+//   I   The Weeping Road        0     – 3400
+//   II  Brackenford (town)      3400  – 6400   walled, safe, the Chapel of Saint Ysolde
+//   III Hallowmere, That Was    6400  – 9800
+//   IV  The Weeping Mire        9800  – 12800
+//   V   The Steps of Saint Varn 12800 – end    (boss)
 // ---------------------------------------------------------------------------
 const ZONES = [
   {
-    x: 0, num: 'I', name: 'The Weeping Road',
+    x: 0, num: 'I', name: 'The Weeping Road', kind: 'road',
     sky: ['#09080b', '#24131a', '#4a2224'], far: '#160f13', mid: '#100b0e', near: '#0a0708',
     ground: '#1a1513', groundDark: '#0b0909', weather: 'rain', moon: '#d6c7ae', fog: '90,70,75',
   },
   {
-    x: 3400, num: 'II', name: 'Hallowmere, That Was',
+    x: 3400, num: 'II', name: 'Brackenford', kind: 'town',
+    sky: ['#06070d', '#141a2a', '#3a2a30'], far: '#0e111a', mid: '#0b0d14', near: '#07080c',
+    ground: '#1c1917', groundDark: '#0c0a09', weather: 'rain', moon: '#e6dcc8', fog: '80,80,100',
+  },
+  {
+    x: 6400, num: 'III', name: 'Hallowmere, That Was', kind: 'village',
     sky: ['#0c0505', '#33100a', '#7a2810'], far: '#1c0d0a', mid: '#140908', near: '#0b0605',
     ground: '#1d1411', groundDark: '#0d0807', weather: 'ash', moon: '#e0a070', fog: '120,60,40',
   },
   {
-    x: 6800, num: 'III', name: 'The Steps of Saint Varn',
+    x: 9800, num: 'IV', name: 'The Weeping Mire', kind: 'mire',
+    sky: ['#050806', '#101c14', '#2a3a22'], far: '#0c140e', mid: '#09100b', near: '#060a07',
+    ground: '#151b12', groundDark: '#080b07', weather: 'mist', moon: '#b8c890', fog: '90,120,80',
+  },
+  {
+    x: 12800, num: 'V', name: 'The Steps of Saint Varn', kind: 'cathedral',
     sky: ['#040508', '#121722', '#3b151c'], far: '#0e1016', mid: '#0a0b10', near: '#060609',
     ground: '#17161a', groundDark: '#09090b', weather: 'rain', moon: '#b8241c', fog: '70,70,90',
   },
 ];
 
 const LEVEL = {
-  width: 9480,
-  bossGate: 8260, arenaEnd: 9260, bossX: 8960, doorX: 9330,
+  width: 15480,
+  bossGate: 14260, arenaEnd: 15260, bossX: 14960, doorX: 15330,
+  townSafe: [3420, 6390],          // no infected inside the walls
+  chapel: [5860, 6250],            // the Sisters' chapel
   shrines: [
     { id: 0, x: 170, name: 'Wayside Shrine' },
-    { id: 1, x: 3640, name: 'Hallowmere Well' },
-    { id: 2, x: 7020, name: 'Cathedral Steps' },
+    { id: 1, x: 6640, name: 'Hallowmere Well' },
+    { id: 2, x: 13020, name: 'Cathedral Steps' },
+    { id: 3, x: 4700, name: 'Brackenford Square' },
+    { id: 4, x: 10300, name: 'The Drowned Chapel' },
   ],
   enemies: [
+    // I — the road
     { type: 'peasant', x: 1080, idle: 'feed', facing: 1 },
     { type: 'crawler', x: 1260, facing: -1 },
     { type: 'peasant', x: 1520, facing: -1 },
@@ -39,53 +60,90 @@ const LEVEL = {
     { type: 'peasant', x: 2850, idle: 'feed', facing: 1 },
     { type: 'crawler', x: 2960, facing: -1 },
     { type: 'flagellant', x: 3160, facing: -1 },
-    { type: 'crawler', x: 4250, facing: -1 },
-    { type: 'footman', x: 4360, facing: -1 },
-    { type: 'peasant', x: 4520, idle: 'pray', facing: -1 },
-    { type: 'peasant', x: 4590, idle: 'pray', facing: -1 },
-    { type: 'flagellant', x: 5060, facing: -1 },
-    { type: 'flagellant', x: 5200, facing: -1 },
-    { type: 'footman', x: 5520, facing: -1 },
-    { type: 'footman', x: 5650, facing: -1 },
-    { type: 'peasant', x: 5920, idle: 'feed', facing: -1 },
-    { type: 'peasant', x: 5990, idle: 'feed', facing: 1 },
-    { type: 'peasant', x: 6060, facing: -1 },
-    { type: 'brute', x: 6150, facing: -1 },
-    { type: 'plaguedoc', x: 6300, facing: -1 },
-    { type: 'flagellant', x: 6440, facing: -1 },
-    { type: 'footman', x: 6620, facing: -1 },
+    { type: 'peasant', x: 3290, facing: -1 },
+    // III — Hallowmere
+    { type: 'crawler', x: 7250, facing: -1 },
     { type: 'footman', x: 7360, facing: -1 },
-    { type: 'plaguedoc', x: 7470, facing: -1 },
-    { type: 'flagellant', x: 7560, idle: 'pray', facing: -1 },
-    { type: 'templar', x: 7720, facing: -1 },
-    { type: 'brute', x: 7920, facing: -1 },
-    { type: 'templar', x: 8120, facing: -1 },
+    { type: 'peasant', x: 7520, idle: 'pray', facing: -1 },
+    { type: 'peasant', x: 7590, idle: 'pray', facing: -1 },
+    { type: 'flagellant', x: 8060, facing: -1 },
+    { type: 'flagellant', x: 8200, facing: -1 },
+    { type: 'footman', x: 8520, facing: -1 },
+    { type: 'footman', x: 8650, facing: -1 },
+    { type: 'peasant', x: 8920, idle: 'feed', facing: -1 },
+    { type: 'peasant', x: 8990, idle: 'feed', facing: 1 },
+    { type: 'peasant', x: 9060, facing: -1 },
+    { type: 'brute', x: 9150, facing: -1 },
+    { type: 'plaguedoc', x: 9300, facing: -1 },
+    { type: 'flagellant', x: 9440, facing: -1 },
+    { type: 'fallensister', x: 9540, facing: -1 },
+    { type: 'footman', x: 9660, facing: -1 },
+    // IV — the Mire
+    { type: 'crawler', x: 9950, facing: -1 },
+    { type: 'carrier', x: 10120, facing: -1 },
+    { type: 'peasant', x: 10560, idle: 'feed', facing: -1 },
+    { type: 'crawler', x: 10640, facing: -1 },
+    { type: 'fallensister', x: 11150, facing: -1 },
+    { type: 'fallensister', x: 11270, facing: -1 },
+    { type: 'carrier', x: 11500, facing: -1 },
+    { type: 'flagellant', x: 11650, facing: -1 },
+    { type: 'plaguedoc', x: 11800, facing: -1 },
+    { type: 'carrier', x: 12160, facing: -1 },
+    { type: 'crawler', x: 12250, facing: -1 },
+    { type: 'brute', x: 12450, facing: -1 },
+    { type: 'footman', x: 12650, facing: -1 },
+    // V — the cathedral steps
+    { type: 'footman', x: 13360, facing: -1 },
+    { type: 'plaguedoc', x: 13470, facing: -1 },
+    { type: 'flagellant', x: 13560, idle: 'pray', facing: -1 },
+    { type: 'templar', x: 13720, facing: -1 },
+    { type: 'fallensister', x: 13820, facing: -1 },
+    { type: 'brute', x: 13920, facing: -1 },
+    { type: 'templar', x: 14120, facing: -1 },
   ],
   npcs: [
     { id: 'osric', x: 640 },
-    { id: 'wren', x: 3930 },
+    { id: 'wren', x: 6930 },
   ],
-  // survivors who can be attacked: fighters defend themselves, civilians cannot
+  // living people: fighters defend themselves, civilians cannot
   allies: [
     { id: 'bram', x: 2350 },
-    { id: 'hedda', x: 4810 },
-    { id: 'odo', x: 5420 },
-    { id: 'anselm', x: 7240 },
+    { id: 'tobias', x: 3530 },
+    { id: 'jory', x: 3820 },
+    { id: 'mags', x: 4110 },
+    { id: 'reeve', x: 4420 },
+    { id: 'garrick', x: 5010 },
+    { id: 'fen', x: 5300 },
+    { id: 'cass', x: 5560 },
+    { id: 'agathe', x: 5960 },
+    { id: 'elowen', x: 6060 },
+    { id: 'maelis', x: 6160 },
+    { id: 'edric', x: 6330 },
+    { id: 'hedda', x: 7810 },
+    { id: 'odo', x: 8420 },
+    { id: 'ysane', x: 10950 },
+    { id: 'holt', x: 12000 },
+    { id: 'anselm', x: 13240 },
   ],
   notes: [
     { id: 'letter', x: 1720 },
-    { id: 'order', x: 4720 },
-    { id: 'hymn', x: 6230 },
-    { id: 'scripture', x: 7980 },
+    { id: 'notice', x: 3660 },
+    { id: 'ysolde', x: 5800 },
+    { id: 'order', x: 7720 },
+    { id: 'hymn', x: 9230 },
+    { id: 'journal', x: 10420 },
+    { id: 'scripture', x: 13980 },
   ],
   hints: [
     { x: 230, text: 'A / D — walk     Shift — sprint     Space — roll (stay invulnerable mid-roll)', touch: 'Drag on the left to walk — push to the rim to sprint.   ⟳ ROLL dodges blows' },
     { x: 470, text: 'E — speak, read, rest at shrines', touch: '✋ appears near people, notes and shrines' },
     { x: 860, text: 'J / Left Click — attack (chain up to three)     K / Right Click — heavy attack', touch: '⚔ ATTACK chains up to three cuts     ✦ HEAVY cleaves' },
-    { x: 1300, text: 'Hold L — raise your guard. Guard just before a blow lands to PARRY.', touch: 'Hold ⛨ GUARD to block. Guard just before a blow lands to PARRY.' },
-    { x: 1640, text: 'Wounded, staggered or crippled foes can be EXECUTED — press F when the sigil appears.', touch: 'Wounded, staggered or crippled foes can be EXECUTED — tap ☠ when it glows.' },
+    { x: 1150, text: 'Every wound from the infected feeds the INFECTION bar. If it fills, you will turn unless cured.', touch: 'Every wound from the infected feeds the INFECTION bar. If it fills, you will turn unless cured.' },
+    { x: 1400, text: 'Hold L — raise your guard. Guard just before a blow lands to PARRY.', touch: 'Hold ⛨ GUARD to block. Guard just before a blow lands to PARRY.' },
+    { x: 1700, text: 'Wounded, staggered or crippled foes can be EXECUTED — press F when the sigil appears.', touch: 'Wounded, staggered or crippled foes can be EXECUTED — tap ☠ when it glows.' },
     { x: 2150, text: 'S + Attack — Hamstring Cut. Take their legs and they will crawl.     Q — drink a vial', touch: 'Hold the stick down + ⚔ — Hamstring Cut. Take their legs.   ⚱ — drink a vial' },
     { x: 2600, text: 'Every cut builds BLEED. Fill the gauge to cause a hemorrhage.' },
+    { x: 3480, text: 'Brackenford: the infected cannot pass its walls. Rest, trade, and find the Sisters at the chapel.' },
   ],
   props: [],
 };
@@ -94,7 +152,7 @@ const LEVEL = {
 (function placeProps() {
   const P = LEVEL.props;
   const add = (type, x, o) => P.push(Object.assign({ type, x }, o || {}));
-  // --- zone I
+  // --- I: the road
   add('tree', 60, { seed: 3, h: 230 }); add('tree', 420, { seed: 7, h: 190 });
   add('cart', 610); add('tree', 900, { seed: 11, h: 260 });
   add('corpse', 1110, { style: 'peasant', rot: 1 }); add('gibbet', 1330, { seed: 1 });
@@ -102,20 +160,35 @@ const LEVEL = {
   add('tree', 2000, { seed: 21, h: 210 }); add('corpse', 2000, { style: 'peasant', rot: -1 });
   add('gibbet', 2320, { seed: 2 }); add('gibbet', 2600, { seed: 3 }); add('tree', 2700, { seed: 5, h: 240 });
   add('corpse', 2880, { style: 'peasant', rot: 1 }); add('pike', 2960); add('tree', 3080, { seed: 9, h: 200 });
-  add('sign', 3300, { text: 'HALLOWMERE' });
-  // --- zone II
-  add('house', 3480, { w: 210, burning: false }); add('well', 3640);
-  add('grave', 3850); add('grave', 3890, { cross: true }); add('grave', 3990); add('grave', 4040, { cross: true }); add('grave', 4085);
-  add('house', 4180, { w: 240, burning: true }); add('cage', 4460); add('corpse', 4550, { style: 'footman', rot: 1 });
-  add('pike', 4700); add('house', 4880, { w: 220, burning: true }); add('barricade', 4860); add('banner', 5060);
-  add('corpse', 5260, { style: 'peasant', rot: -1 }); add('house', 5380, { w: 260, burning: false });
-  add('pike', 5480); add('pike', 5520); add('house', 5760, { w: 230, burning: true });
-  add('corpse', 5960, { style: 'peasant', rot: 1 }); add('cage', 6150); add('house', 6300, { w: 250, burning: true });
-  add('banner', 6560); add('pike', 6700);
-  // --- zone III
-  add('pillar', 6900); add('statue', 7180); add('pillar', 7300); add('candles', 7440); add('pillar', 7640);
-  add('statue', 7800); add('pillar', 8000); add('candles', 8120); add('pillar', 8200);
-  add('brazier', 8320); add('brazier', 9200); add('statue', 8760, { big: true });
+  add('sign', 3250, { text: 'BRACKENFORD' });
+  // --- II: Brackenford
+  add('townwall', 3420);
+  add('lamppost', 3600); add('board', 3660); add('townhouse', 3760, { w: 200, seed: 1 }); add('lamppost', 3930);
+  add('townhouse', 4060, { w: 190, seed: 2 }); add('stall', 4230, { col: '#6a2a22' }); add('hall', 4440);
+  add('lamppost', 4620); add('well', 4780); add('stall', 4880, { col: '#2a4a5a' }); add('forge', 5040);
+  add('lamppost', 5190); add('townhouse', 5300, { w: 220, seed: 3, tavern: true }); add('lamppost', 5450);
+  add('grave', 5540, { cross: true }); add('townhouse', 5680, { w: 180, seed: 4 });
+  add('chapel', 6050); add('lamppost', 6290); add('townwall', 6390, { east: true });
+  add('sign', 6460, { text: 'HALLOWMERE' });
+  // --- III: Hallowmere
+  add('house', 6480, { w: 210, burning: false }); add('well', 6640);
+  add('grave', 6850); add('grave', 6890, { cross: true }); add('grave', 6990); add('grave', 7040, { cross: true }); add('grave', 7085);
+  add('house', 7180, { w: 240, burning: true }); add('cage', 7460); add('corpse', 7550, { style: 'footman', rot: 1 });
+  add('pike', 7700); add('house', 7880, { w: 220, burning: true }); add('barricade', 7860); add('banner', 8060);
+  add('corpse', 8260, { style: 'peasant', rot: -1 }); add('house', 8380, { w: 260, burning: false });
+  add('pike', 8480); add('pike', 8520); add('house', 8760, { w: 230, burning: true });
+  add('corpse', 8960, { style: 'peasant', rot: 1 }); add('cage', 9150); add('house', 9300, { w: 250, burning: true });
+  add('banner', 9560); add('pike', 9700);
+  // --- IV: the Mire
+  add('tree', 9880, { seed: 31, h: 250 }); add('reeds', 9990); add('bog', 10180, { w: 160 }); add('ruinchapel', 10300);
+  add('reeds', 10500); add('tree', 10700, { seed: 33, h: 210 }); add('boardwalk', 10820, { w: 260 }); add('bog', 11050, { w: 120 });
+  add('corpse', 11200, { style: 'peasant', rot: -1 }); add('reeds', 11380); add('gibbet', 11560, { seed: 5 }); add('bog', 11720, { w: 200 });
+  add('tree', 11900, { seed: 37, h: 270 }); add('boardwalk', 12080, { w: 220 }); add('reeds', 12300); add('cage', 12420);
+  add('bog', 12560, { w: 140 }); add('sign', 12720, { text: 'SAINT VARN' });
+  // --- V: the cathedral steps
+  add('pillar', 12900); add('statue', 13180); add('pillar', 13300); add('candles', 13440); add('pillar', 13640);
+  add('statue', 13800); add('pillar', 14000); add('candles', 14120); add('pillar', 14200);
+  add('brazier', 14320); add('brazier', 15200); add('statue', 14760, { big: true });
   add('cathedral', LEVEL.doorX);
 })();
 
@@ -130,35 +203,42 @@ const Scenery = {
       const items = [];
       for (let wx = -400; wx < LEVEL.width + 600; wx += gen.step * (0.6 + rnd() * 0.8)) {
         const x = (wx - W / 2) * factor + W / 2;
-        const zone = zoneIndex(wx);
-        items.push(gen.make(x, zone, rnd));
+        items.push(gen.make(x, ZONES[zoneIndex(wx)].kind, rnd));
       }
       return { factor, items };
     };
-    // far hills
     const hills = [];
     for (let x = -200; x < LEVEL.width * 0.12 + W + 400; x += 40) hills.push({ x, h: 60 + Math.sin(x * 0.006) * 30 + rnd() * 25 });
     this.hills = hills;
     this.layers = [
       mk(0.25, {
-        step: 180, make: (x, z, r) => {
-          if (z === 0) return { k: r() < 0.6 ? 'ftree' : 'windmill', x, h: 60 + r() * 50, z };
-          if (z === 1) return { k: r() < 0.25 ? 'tower' : 'roofs', x, h: 50 + r() * 60, w: 60 + r() * 80, z };
-          return { k: r() < 0.5 ? 'spire' : 'tower', x, h: 140 + r() * 120, w: 30 + r() * 30, z };
+        step: 180, make: (x, k, r) => {
+          if (k === 'road') return { k: r() < 0.6 ? 'ftree' : 'windmill', x, h: 60 + r() * 50 };
+          if (k === 'town') return { k: r() < 0.3 ? 'tower' : 'roofs', x, h: 60 + r() * 70, w: 70 + r() * 80 };
+          if (k === 'village') return { k: r() < 0.25 ? 'tower' : 'roofs', x, h: 50 + r() * 60, w: 60 + r() * 80 };
+          if (k === 'mire') return { k: r() < 0.75 ? 'ftree' : 'windmill', x, h: 50 + r() * 60 };
+          return { k: r() < 0.5 ? 'spire' : 'tower', x, h: 140 + r() * 120, w: 30 + r() * 30 };
         },
       }),
       mk(0.5, {
-        step: 260, make: (x, z, r) => {
-          if (z === 0) return { k: r() < 0.7 ? 'mtree' : 'gallows', x, h: 120 + r() * 80, seed: Math.floor(r() * 1000), z };
-          if (z === 1) return { k: 'house', x, h: 90 + r() * 50, w: 90 + r() * 70, lit: r() < 0.5, z };
-          return { k: r() < 0.5 ? 'arch' : 'mtree', x, h: 150 + r() * 80, w: 60 + r() * 40, seed: Math.floor(r() * 1000), z };
+        step: 260, make: (x, k, r) => {
+          if (k === 'road') return { k: r() < 0.7 ? 'mtree' : 'gallows', x, h: 120 + r() * 80, seed: Math.floor(r() * 1000) };
+          if (k === 'town') return { k: 'house', x, h: 100 + r() * 60, w: 90 + r() * 70, lit: r() < 0.8, warm: true };
+          if (k === 'village') return { k: 'house', x, h: 90 + r() * 50, w: 90 + r() * 70, lit: r() < 0.5 };
+          if (k === 'mire') return { k: r() < 0.5 ? 'mtree' : 'reedsil', x, h: 110 + r() * 80, seed: Math.floor(r() * 1000) };
+          return { k: r() < 0.5 ? 'arch' : 'mtree', x, h: 150 + r() * 80, w: 60 + r() * 40, seed: Math.floor(r() * 1000) };
         },
       }),
     ];
   },
 };
 
-function zoneIndex(x) { return x >= ZONES[2].x ? 2 : x >= ZONES[1].x ? 1 : 0; }
+function zoneIndex(x) {
+  for (let i = ZONES.length - 1; i > 0; i--) if (x >= ZONES[i].x) return i;
+  return 0;
+}
+function zoneKind(x) { return ZONES[zoneIndex(x)].kind; }
+function inTown(x) { return x > LEVEL.townSafe[0] && x < LEVEL.townSafe[1]; }
 
 // palette blended across zone borders (400px crossfade)
 function zonePalette(x) {
@@ -263,12 +343,16 @@ function drawSilhouette(ctx, it, x, base, t) {
       const hw = it.w / 2;
       ctx.beginPath(); ctx.moveTo(x - hw, base); ctx.lineTo(x - hw, base - it.h * 0.55); ctx.lineTo(x - hw * 0.2, base - it.h); ctx.lineTo(x + hw * 0.3, base - it.h * 0.85); ctx.lineTo(x + hw, base - it.h * 0.55); ctx.lineTo(x + hw, base); ctx.fill();
       if (it.lit) {
-        const f = 0.5 + Math.sin(t * 7 + x) * 0.2;
-        ctx.fillStyle = `rgba(255,120,40,${f})`; ctx.fillRect(x - hw * 0.5, base - it.h * 0.4, 10, 12); ctx.fillRect(x + hw * 0.3, base - it.h * 0.42, 9, 11);
+        const f = it.warm ? 0.55 + Math.sin(t * 1.3 + x) * 0.05 : 0.5 + Math.sin(t * 7 + x) * 0.2;
+        ctx.fillStyle = it.warm ? `rgba(255,196,110,${f})` : `rgba(255,120,40,${f})`; ctx.fillRect(x - hw * 0.5, base - it.h * 0.4, 10, 12); ctx.fillRect(x + hw * 0.3, base - it.h * 0.42, 9, 11);
         ctx.fillStyle = ctx.strokeStyle;
       }
       break;
     }
+    case 'reedsil':
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 9; i++) { const rx = x + i * 7 - 30, rh = it.h * (0.35 + ((i * 37) % 10) / 22); ctx.beginPath(); ctx.moveTo(rx, base); ctx.quadraticCurveTo(rx + 4, base - rh * 0.6, rx + Math.sin(t + i) * 4 + 3, base - rh); ctx.stroke(); }
+      break;
     case 'arch':
       ctx.fillRect(x - it.w / 2, base - it.h, 14, it.h); ctx.fillRect(x + it.w / 2 - 14, base - it.h, 14, it.h);
       ctx.beginPath(); ctx.moveTo(x - it.w / 2, base - it.h); ctx.quadraticCurveTo(x, base - it.h - it.w * 0.7, x + it.w / 2, base - it.h); ctx.lineTo(x + it.w / 2, base - it.h + 14); ctx.quadraticCurveTo(x, base - it.h - it.w * 0.45, x - it.w / 2, base - it.h + 14); ctx.fill();
@@ -291,9 +375,10 @@ function drawGround(ctx, l, r, playerX) {
   ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fillRect(l - 20, GROUND - 2, r - l + 40, 2);
   for (const d of groundDetail) {
     if (d.x < l - 30 || d.x > r + 30) continue;
-    const zi = zoneIndex(d.x);
-    if (d.k === 'puddle') {
-      ctx.fillStyle = 'rgba(70,40,45,0.35)'; ctx.beginPath(); ctx.ellipse(d.x, d.y, d.w * 5, d.w * 0.8, 0, 0, Math.PI * 2); ctx.fill();
+    const zk = zoneKind(d.x), dirt = zk === 'road' || zk === 'mire';
+    const zi = dirt ? 0 : 1;
+    if (d.k === 'puddle' || (zk === 'mire' && d.k === 'grass' && d.y > GROUND + 40)) {
+      ctx.fillStyle = zk === 'mire' ? 'rgba(60,80,40,0.4)' : 'rgba(70,40,45,0.35)'; ctx.beginPath(); ctx.ellipse(d.x, d.y, d.w * 5, d.w * 0.8, 0, 0, Math.PI * 2); ctx.fill();
     } else if (d.k === 'stone') {
       ctx.fillStyle = zi === 0 ? 'rgba(0,0,0,0.35)' : 'rgba(80,72,70,0.22)';
       if (zi === 0) { ctx.beginPath(); ctx.ellipse(d.x, d.y, d.w, d.w * 0.5, 0, 0, Math.PI * 2); ctx.fill(); }
@@ -359,7 +444,7 @@ function drawProp(ctx, p, t, game) {
       ctx.fillStyle = '#1e1610'; ctx.fillRect(x - 3, y - 90, 6, 90);
       ctx.save(); ctx.translate(x, y - 78); ctx.rotate(-0.06);
       ctx.fillStyle = '#2e2218'; ctx.beginPath(); ctx.moveTo(-6, -12); ctx.lineTo(70, -12); ctx.lineTo(82, 0); ctx.lineTo(70, 12); ctx.lineTo(-6, 12); ctx.fill();
-      ctx.fillStyle = '#8a7a5a'; ctx.font = `10px ${TITLE_FONT}`; ctx.textAlign = 'left'; ctx.fillText(p.text, 0, 4);
+      ctx.fillStyle = '#8a7a5a'; ctx.font = `${p.text.length > 9 ? 8 : 10}px ${TITLE_FONT}`; ctx.textAlign = 'left'; ctx.fillText(p.text, 0, 4);
       ctx.restore();
       break;
     case 'house': {
@@ -385,6 +470,125 @@ function drawProp(ctx, p, t, game) {
       ctx.fillStyle = '#3a2a1c'; ctx.fillRect(-36, -34, 70, 9); ctx.fillRect(-28, -22, 60, 7);
       ctx.fillStyle = '#5a4a3a'; ctx.fillRect(-14, -46, 4, 46); ctx.fillRect(12, -40, 4, 40);
       ctx.restore();
+      break;
+    case 'townwall': { // stone curtain wall with an open gatehouse
+      const wx = x, e = p.east ? -1 : 1;
+      ctx.fillStyle = '#24222a'; ctx.fillRect(wx - 40, y - 230, 80, 230);
+      ctx.fillStyle = '#2c2a33'; for (let i = 0; i < 5; i++) ctx.fillRect(wx - 44 + i * 18, y - 246, 12, 18);
+      ctx.fillStyle = '#0a0809'; ctx.beginPath(); ctx.moveTo(wx - 24, y); ctx.lineTo(wx - 24, y - 120); ctx.quadraticCurveTo(wx, y - 156, wx + 24, y - 120); ctx.lineTo(wx + 24, y); ctx.fill();
+      ctx.strokeStyle = '#3a3638'; ctx.lineWidth = 2; // raised portcullis
+      for (let i = -18; i <= 18; i += 9) { ctx.beginPath(); ctx.moveTo(wx + i, y - 150); ctx.lineTo(wx + i, y - 124); ctx.stroke(); }
+      ctx.fillStyle = '#5a1418'; ctx.fillRect(wx + e * 30 - 8, y - 210, 16, 44); ctx.fillStyle = '#c9b77a'; ctx.beginPath(); ctx.arc(wx + e * 30, y - 192, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = `rgba(255,190,100,${0.75 + Math.sin(t * 9 + x) * 0.15})`; ctx.beginPath(); ctx.arc(wx + 30 * e, y - 120, 4, 0, Math.PI * 2); ctx.fill();
+      break;
+    }
+    case 'townhouse': { // intact timber-framed house with lit windows
+      const w = p.w, h = 180;
+      ctx.fillStyle = '#2a2420'; ctx.fillRect(x - w / 2, y - h, w, h);
+      ctx.fillStyle = '#1c1612'; ctx.beginPath(); ctx.moveTo(x - w / 2 - 12, y - h); ctx.lineTo(x, y - h - 70); ctx.lineTo(x + w / 2 + 12, y - h); ctx.fill();
+      ctx.strokeStyle = '#3b2c20'; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(x - w / 2, y - h * 0.52); ctx.lineTo(x + w / 2, y - h * 0.52); ctx.moveTo(x - w / 2, y - h); ctx.lineTo(x - w / 4, y - h * 0.52); ctx.moveTo(x + w / 2, y - h); ctx.lineTo(x + w / 4, y - h * 0.52); ctx.stroke();
+      ctx.fillStyle = '#120d0a'; ctx.fillRect(x - 16, y - 64, 32, 64);
+      const wl = `rgba(255,${190 + (p.seed % 3) * 10},110,${0.75 + Math.sin(t * 1.5 + p.seed) * 0.06})`;
+      ctx.fillStyle = wl; ctx.fillRect(x - w / 2 + 20, y - h * 0.4, 24, 24); ctx.fillRect(x + w / 2 - 44, y - h * 0.4, 24, 24); ctx.fillRect(x - 12, y - h + 22, 24, 22);
+      ctx.strokeStyle = '#2a1d14'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x - w / 2 + 32, y - h * 0.4); ctx.lineTo(x - w / 2 + 32, y - h * 0.4 + 24); ctx.moveTo(x + w / 2 - 32, y - h * 0.4); ctx.lineTo(x + w / 2 - 32, y - h * 0.4 + 24); ctx.stroke();
+      if (p.tavern) {
+        ctx.fillStyle = '#1a120c'; ctx.fillRect(x + 22, y - 120, 30, 3); ctx.fillRect(x + 50, y - 120, 2, 10);
+        ctx.save(); ctx.translate(x + 51, y - 108); ctx.rotate(Math.sin(t * 1.2) * 0.08);
+        ctx.fillStyle = '#4a3220'; ctx.fillRect(-14, 0, 28, 18); ctx.fillStyle = '#c9a35a'; ctx.font = `8px ${TITLE_FONT}`; ctx.textAlign = 'center'; ctx.fillText('ALE', 0, 12); ctx.restore();
+      }
+      break;
+    }
+    case 'hall': { // the reeve's hall
+      ctx.fillStyle = '#2b2622'; ctx.fillRect(x - 120, y - 210, 240, 210);
+      ctx.fillStyle = '#1d1814'; ctx.beginPath(); ctx.moveTo(x - 135, y - 210); ctx.lineTo(x, y - 300); ctx.lineTo(x + 135, y - 210); ctx.fill();
+      ctx.fillStyle = '#3a2c20'; for (let i = -100; i <= 100; i += 40) ctx.fillRect(x + i - 4, y - 210, 8, 210);
+      ctx.fillStyle = '#130e0a'; ctx.fillRect(x - 24, y - 90, 48, 90);
+      ctx.fillStyle = 'rgba(255,196,110,0.75)'; ctx.fillRect(x - 70, y - 170, 22, 40); ctx.fillRect(x + 48, y - 170, 22, 40);
+      ctx.fillStyle = '#2b4a6b'; ctx.fillRect(x - 10, y - 200, 20, 46); ctx.fillStyle = '#c9b77a'; ctx.beginPath(); ctx.arc(x, y - 182, 5, 0, Math.PI * 2); ctx.fill();
+      break;
+    }
+    case 'stall': // market stall with a striped awning
+      ctx.fillStyle = '#2a1d13'; ctx.fillRect(x - 46, y - 80, 4, 80); ctx.fillRect(x + 42, y - 80, 4, 80);
+      for (let i = 0; i < 6; i++) { ctx.fillStyle = i % 2 ? p.col : '#c8b896'; ctx.beginPath(); ctx.moveTo(x - 50 + i * 17, y - 84); ctx.lineTo(x - 33 + i * 17, y - 84); ctx.lineTo(x - 33 + i * 17, y - 70); ctx.lineTo(x - 50 + i * 17, y - 66); ctx.fill(); }
+      ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x - 46, y - 34, 92, 8);
+      ctx.fillStyle = '#7a6a3a'; ctx.beginPath(); ctx.arc(x - 26, y - 38, 6, 0, Math.PI * 2); ctx.arc(x - 12, y - 38, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#6a2a1a'; ctx.beginPath(); ctx.arc(x + 14, y - 38, 5, 0, Math.PI * 2); ctx.arc(x + 26, y - 38, 5, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 'lamppost':
+      ctx.fillStyle = '#16151a'; ctx.fillRect(x - 2.5, y - 120, 5, 120); ctx.fillRect(x - 2.5, y - 120, 16, 3);
+      ctx.fillStyle = '#26252c'; ctx.fillRect(x + 8, y - 117, 10, 14);
+      ctx.fillStyle = `rgba(255,200,120,${0.85 + Math.sin(t * 8 + x) * 0.1})`; ctx.fillRect(x + 10, y - 114, 6, 9);
+      break;
+    case 'board': // notice board
+      ctx.fillStyle = '#2a1d13'; ctx.fillRect(x - 26, y - 70, 4, 70); ctx.fillRect(x + 22, y - 70, 4, 70);
+      ctx.fillStyle = '#3a2a1c'; ctx.fillRect(x - 30, y - 92, 60, 40);
+      ctx.fillStyle = '#b8ab8c'; ctx.fillRect(x - 24, y - 88, 18, 22); ctx.fillRect(x - 2, y - 86, 22, 16); ctx.fillStyle = '#8a1a14'; ctx.fillRect(x + 4, y - 66, 14, 10);
+      break;
+    case 'forge': { // smithy with a glowing hearth
+      ctx.fillStyle = '#2a2622'; ctx.fillRect(x - 70, y - 150, 140, 150);
+      ctx.fillStyle = '#1a1612'; ctx.beginPath(); ctx.moveTo(x - 80, y - 150); ctx.lineTo(x + 80, y - 150); ctx.lineTo(x + 60, y - 180); ctx.lineTo(x - 60, y - 180); ctx.fill();
+      ctx.fillStyle = '#33302c'; ctx.fillRect(x + 30, y - 230, 26, 80);
+      const fl = 0.75 + Math.sin(t * 11) * 0.15;
+      ctx.fillStyle = `rgba(255,${120 + Math.sin(t * 7) * 30},40,${fl})`; ctx.fillRect(x - 50, y - 70, 50, 34);
+      ctx.fillStyle = '#26232a'; ctx.fillRect(x + 6, y - 30, 40, 10); ctx.fillRect(x + 18, y - 20, 16, 20); // anvil
+      if (chance(0.15)) FX.ember(x - 25 + rand(-10, 10), y - 74);
+      break;
+    }
+    case 'chapel': { // Chapel of Saint Ysolde
+      ctx.fillStyle = '#26232c'; ctx.fillRect(x - 180, y - 250, 360, 250);
+      ctx.fillStyle = '#1b1920'; ctx.beginPath(); ctx.moveTo(x - 195, y - 250); ctx.lineTo(x, y - 350); ctx.lineTo(x + 195, y - 250); ctx.fill();
+      ctx.fillStyle = '#211f27'; ctx.fillRect(x + 110, y - 420, 60, 170); // bell tower
+      ctx.beginPath(); ctx.moveTo(x + 104, y - 420); ctx.lineTo(x + 140, y - 480); ctx.lineTo(x + 176, y - 420); ctx.fill();
+      ctx.fillStyle = '#0c0b0f'; ctx.fillRect(x + 126, y - 405, 28, 34);
+      ctx.fillStyle = '#6a5a3a'; ctx.beginPath(); ctx.arc(x + 140, y - 384, 9, Math.PI, 0); ctx.fill(); ctx.fillRect(x + 131, y - 384, 18, 6);
+      ctx.fillStyle = '#c9b77a'; ctx.fillRect(x + 139, y - 500, 2, 20); ctx.fillRect(x + 133, y - 494, 14, 2);
+      // stained-glass rose window
+      const rg = ctx.createRadialGradient(x, y - 260, 4, x, y - 260, 38);
+      rg.addColorStop(0, '#f0d8a0'); rg.addColorStop(0.5, '#8a5ac0'); rg.addColorStop(1, '#3a2060');
+      ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(x, y - 260, 36, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#1b1920'; ctx.lineWidth = 3;
+      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; ctx.beginPath(); ctx.moveTo(x, y - 260); ctx.lineTo(x + Math.cos(a) * 36, y - 260 + Math.sin(a) * 36); ctx.stroke(); }
+      ctx.beginPath(); ctx.arc(x, y - 260, 14, 0, Math.PI * 2); ctx.stroke();
+      // tall lancet windows
+      for (const wx of [x - 130, x - 80, x + 80]) {
+        const wg = ctx.createLinearGradient(0, y - 200, 0, y - 110);
+        wg.addColorStop(0, '#b090e0'); wg.addColorStop(1, '#f0c890');
+        ctx.fillStyle = wg; ctx.globalAlpha = 0.85;
+        ctx.beginPath(); ctx.moveTo(wx - 10, y - 110); ctx.lineTo(wx - 10, y - 185); ctx.quadraticCurveTo(wx, y - 205, wx + 10, y - 185); ctx.lineTo(wx + 10, y - 110); ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      // open doors with warm candlelight
+      const dg = ctx.createLinearGradient(0, y - 140, 0, y);
+      dg.addColorStop(0, 'rgba(255,200,120,0.5)'); dg.addColorStop(1, 'rgba(255,220,150,0.85)');
+      ctx.fillStyle = dg; ctx.beginPath(); ctx.moveTo(x - 34, y); ctx.lineTo(x - 34, y - 110); ctx.quadraticCurveTo(x, y - 150, x + 34, y - 110); ctx.lineTo(x + 34, y); ctx.fill();
+      ctx.fillStyle = '#2a1d14'; ctx.fillRect(x - 50, y - 112, 16, 112); ctx.fillRect(x + 34, y - 112, 16, 112);
+      ctx.fillStyle = '#e8dcc8'; ctx.font = `10px ${TITLE_FONT}`; ctx.textAlign = 'center'; ctx.fillText('SANCTA YSOLDA', x, y - 158);
+      break;
+    }
+    case 'reeds':
+      ctx.strokeStyle = '#1a2214'; ctx.lineWidth = 1.6;
+      for (let i = 0; i < 14; i++) { const rx = x + i * 6 - 40, rh = 30 + ((i * 53) % 40); ctx.beginPath(); ctx.moveTo(rx, y + 4); ctx.quadraticCurveTo(rx + 3, y - rh * 0.6, rx + Math.sin(t * 1.4 + i) * 4, y - rh); ctx.stroke(); }
+      ctx.fillStyle = '#2a2014'; for (let i = 0; i < 4; i++) ctx.fillRect(x - 30 + i * 18, y - 40 - (i * 11) % 18, 3, 9);
+      break;
+    case 'bog': { // sickly glowing pool
+      const g = ctx.createRadialGradient(x, y + 6, 4, x, y + 6, p.w / 2);
+      g.addColorStop(0, `rgba(110,150,60,${0.5 + Math.sin(t * 2 + x) * 0.1})`); g.addColorStop(1, 'rgba(40,60,20,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(x, y + 8, p.w / 2, 10, 0, 0, Math.PI * 2); ctx.fill();
+      if (chance(0.03)) FX.add({ k: 'd', x: x + rand(-p.w / 3, p.w / 3), y: y + 4, vx: 0, vy: -20, t: 0, life: 0.8, r: 3 });
+      break;
+    }
+    case 'boardwalk':
+      ctx.fillStyle = '#2a2016'; for (let i = 0; i < p.w; i += 14) ctx.fillRect(x - p.w / 2 + i, y - 3, 11, 5);
+      ctx.fillStyle = '#1e170f'; for (let i = 0; i < p.w; i += 60) ctx.fillRect(x - p.w / 2 + i, y - 18, 4, 22);
+      break;
+    case 'ruinchapel':
+      ctx.fillStyle = '#1e2420'; ctx.fillRect(x - 150, y - 160, 30, 160); ctx.fillRect(x + 110, y - 210, 34, 210);
+      ctx.beginPath(); ctx.moveTo(x - 150, y - 160); ctx.lineTo(x - 120, y - 200); ctx.lineTo(x - 110, y - 160); ctx.fill();
+      ctx.fillRect(x + 60, y - 120, 20, 120);
+      ctx.strokeStyle = '#1e2420'; ctx.lineWidth = 12; ctx.beginPath(); ctx.arc(x + 127, y - 210, 60, Math.PI, Math.PI * 1.45); ctx.stroke();
+      ctx.fillStyle = '#2a3020'; ctx.fillRect(x - 160, y - 8, 320, 8);
       break;
     case 'well':
       ctx.fillStyle = '#2a2624'; ctx.fillRect(x - 32, y - 34, 64, 34);
@@ -585,6 +789,23 @@ const Weather = {
         ctx.moveTo(d.x, d.y); ctx.lineTo(d.x - d.l * 0.18, d.y - d.l);
       }
       ctx.stroke();
+    } else if (w === 'mist') {
+      // drifting marsh fog and sickly spores
+      this.mistX = (this.mistX || 0) + dt * 8 + camDX * 0.3;
+      for (let i = 0; i < 5; i++) {
+        const mx = ((i * 260 - this.mistX * (1 + i * 0.2)) % (W + 400) + W + 400) % (W + 400) - 200;
+        const my = H - 120 + Math.sin(i * 2 + this.mistX * 0.01) * 20;
+        const g = ctx.createRadialGradient(mx, my, 10, mx, my, 220);
+        g.addColorStop(0, 'rgba(120,150,110,0.12)'); g.addColorStop(1, 'rgba(120,150,110,0)');
+        ctx.fillStyle = g; ctx.fillRect(mx - 220, my - 220, 440, 440);
+      }
+      for (const a of this.ash) {
+        a.y -= a.v * 0.3 * dt; a.x += Math.sin(a.ph + a.y * 0.02) * 14 * dt - camDX * 0.5;
+        if (a.y < -5) { a.y = H + 5; a.x = rand(0, W); }
+        if (a.x < -10) a.x += W + 20; if (a.x > W + 10) a.x -= W + 20;
+        ctx.fillStyle = `rgba(170,200,110,${0.25 + Math.sin(a.ph + a.y * 0.05) * 0.2})`;
+        ctx.fillRect(a.x, a.y, a.r, a.r);
+      }
     } else {
       for (const a of this.ash) {
         a.y += a.v * dt; a.x += Math.sin(a.ph + a.y * 0.02) * 20 * dt - camDX * 0.5;

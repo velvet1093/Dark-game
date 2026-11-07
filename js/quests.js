@@ -13,18 +13,22 @@ const QUESTS = {
     title: 'The Ashen Oath', main: true,
     steps: [
       { kind: 'auto', text: 'Speak with the dying monk on the road', x: 640, done: f => f.osric },
-      { kind: 'auto', text: 'Reach the village of Hallowmere', x: 3420, done: f => f.reached1 },
-      { kind: 'auto', text: 'Find the gravedigger in Hallowmere', x: 3930, done: f => f.wren },
-      { kind: 'auto', text: 'Climb to the Steps of Saint Varn', x: 6820, done: f => f.reached2 },
-      { kind: 'auto', text: 'Defeat Gaul, the Penitent Headsman', x: 8960, done: f => f.bossDead },
-      { kind: 'auto', text: 'Descend into the crypt beneath the cathedral', x: 9350, done: f => f.ended },
+      { kind: 'auto', text: 'Reach the walled town of Brackenford', x: 3440, done: f => f.reached_town },
+      { kind: 'auto', text: 'Speak with Reeve Aldous in the square', x: 4420, done: f => f.reeve },
+      { kind: 'auto', text: 'Seek Mother Agathe at the Chapel of Saint Ysolde', x: 5960, done: f => f.agathe },
+      { kind: 'auto', text: 'Reach the village of Hallowmere', x: 6440, done: f => f.reached_village },
+      { kind: 'auto', text: 'Find the gravedigger in Hallowmere', x: 6930, done: f => f.wren },
+      { kind: 'auto', text: 'Cross the Weeping Mire', x: 9820, done: f => f.reached_mire },
+      { kind: 'auto', text: 'Climb to the Steps of Saint Varn', x: 12820, done: f => f.reached_cathedral },
+      { kind: 'auto', text: 'Defeat Gaul, the Penitent Headsman', x: 14960, done: f => f.bossDead },
+      { kind: 'auto', text: 'Descend into the crypt beneath the cathedral', x: 15350, done: f => f.ended },
     ],
   },
   bram: {
     title: 'Last of the Watch', giver: 'bram',
     steps: [
       { kind: 'talk', text: 'Speak with Sergeant Bram by the gallows', x: 2350 },
-      { kind: 'kill', text: 'Clear the hollowed from the road', kinds: ['peasant', 'crawler'], count: 3, x0: 2300, x1: 3300, x: 2850 },
+      { kind: 'kill', text: 'Clear the infected from the road', kinds: ['peasant', 'crawler'], count: 3, x0: 2300, x1: 3350, x: 2850 },
       { kind: 'return', text: 'Return to Sergeant Bram', x: 2350 },
     ],
     reward: { embers: 300 },
@@ -32,32 +36,41 @@ const QUESTS = {
   hedda: {
     title: 'The Widow at the Barricade', giver: 'hedda',
     steps: [
-      { kind: 'talk', text: 'Speak with Hedda behind the barricade', x: 4810 },
-      { kind: 'kill', text: 'Slay the flagellants hunting Hedda', kinds: ['flagellant'], count: 2, x0: 4700, x1: 5500, x: 5120 },
-      { kind: 'return', text: 'Tell Hedda she is safe', x: 4810 },
+      { kind: 'talk', text: 'Speak with Hedda behind the barricade', x: 7810 },
+      { kind: 'kill', text: 'Slay the flagellants hunting Hedda', kinds: ['flagellant'], count: 2, x0: 7700, x1: 8500, x: 8120 },
+      { kind: 'return', text: 'Tell Hedda she is safe', x: 7810 },
     ],
     reward: { flask: 1 },
   },
   odo: {
     title: 'A Sellsword\'s Price', giver: 'odo',
     steps: [
-      { kind: 'talk', text: 'Speak with Odo the sellsword', x: 5420 },
-      { kind: 'kill', text: 'Cut down the turned garrison with Odo', kinds: ['footman'], count: 2, x0: 5300, x1: 6000, x: 5600 },
-      { kind: 'return', text: 'Collect your share from Odo', x: 5420 },
+      { kind: 'talk', text: 'Speak with Odo the sellsword', x: 8420 },
+      { kind: 'kill', text: 'Cut down the turned garrison with Odo', kinds: ['footman'], count: 2, x0: 8300, x1: 9000, x: 8600 },
+      { kind: 'return', text: 'Collect your share from Odo', x: 8420 },
     ],
     reward: { embers: 500 },
+  },
+  ysane: {
+    title: 'The Lost Sister', giver: 'ysane',
+    steps: [
+      { kind: 'talk', text: 'Find Sister Ysane near the Drowned Chapel', x: 10950 },
+      { kind: 'kill', text: 'Give rest to the Weeping Sisters', kinds: ['fallensister'], count: 2, x0: 11000, x1: 11400, x: 11210 },
+      { kind: 'return', text: 'Return to Sister Ysane', x: 10950 },
+    ],
+    reward: { tonics: 2 },
   },
   anselm: {
     title: 'The Torn Page', giver: 'anselm',
     steps: [
-      { kind: 'talk', text: 'Speak with Brother Anselm by the weeping statue', x: 7240 },
-      { kind: 'note', text: 'Find the torn page of scripture up the steps', note: 'scripture', x: 7980 },
-      { kind: 'return', text: 'Bring the page to Brother Anselm', x: 7240 },
+      { kind: 'talk', text: 'Speak with Brother Anselm by the weeping statue', x: 13240 },
+      { kind: 'note', text: 'Find the torn page of scripture up the steps', note: 'scripture', x: 13980 },
+      { kind: 'return', text: 'Bring the page to Brother Anselm', x: 13240 },
     ],
     reward: { embers: 400 },
   },
 };
-const QUEST_ORDER = ['main', 'bram', 'hedda', 'odo', 'anselm'];
+const QUEST_ORDER = ['main', 'bram', 'hedda', 'odo', 'ysane', 'anselm'];
 
 const Quests = {
   ensure(flags) {
@@ -102,6 +115,7 @@ const Quests = {
     if (Q.reward) {
       if (Q.reward.embers) p.embers += Q.reward.embers;
       if (Q.reward.flask) { p.maxFlasks += Q.reward.flask; p.flasks += Q.reward.flask; }
+      if (Q.reward.tonics) p.tonics = Math.min(p.maxTonics, p.tonics + Q.reward.tonics);
     }
     if (Game.flags.focus === id) Game.flags.focus = null;
     this.notify('QUEST COMPLETE', Q.title, '#e8c070');
@@ -167,6 +181,7 @@ const Quests = {
 
   // quest marker shown above a survivor: '!' new, '?' ready to turn in
   marker(ally) {
+    if (!ally.def.quest) return ally.def.story && !Game.flags[ally.def.story] ? '!' : null;
     const s = this.q(ally.def.quest);
     if (!s) return '!';
     if (s.status === 'active' && this.step(ally.def.quest).kind === 'return') return '?';
@@ -188,7 +203,7 @@ const Quests = {
 
   // ---------------------------------------------------------------- UI
   drawTracker(ctx, g) {
-    const right = !Mobile.enabled, x = right ? W - 28 : 28, y0 = right ? 40 : 104;
+    const right = !Mobile.enabled, x = right ? W - 28 : 28, y0 = right ? 40 : 124;
     const rows = [];
     const main = g.flags.quests.main;
     if (main.status === 'active') rows.push({ id: 'main' });

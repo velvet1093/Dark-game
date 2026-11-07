@@ -17,10 +17,10 @@ const FX = {
   addHitstop(v) { this.hitstop = Math.max(this.hitstop, v); },
 
   // ang uses screen convention: 0 = right, -PI/2 = up
-  blood(x, y, ang, spread, speed, n, size = 1) {
+  blood(x, y, ang, spread, speed, n, size = 1, cols) {
     for (let i = 0; i < n; i++) {
       const a = ang + rand(-spread, spread), v = speed * rand(0.3, 1.1);
-      this.add({ k: 'b', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: 3, r: rand(1.1, 3.1) * size, gy: rand(-2, 9), col: pick(BLOOD_COLS) });
+      this.add({ k: 'b', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: 3, r: rand(1.1, 3.1) * size, gy: rand(-2, 9), col: pick(cols || BLOOD_COLS) });
     }
   },
   mist(x, y, n, dir = 0) {

@@ -80,6 +80,7 @@ const Mobile = {
         <button class="tb mid roll" data-code="Space" aria-label="Roll"><span>⟳</span><i>ROLL</i></button>
         <button class="tb mid guard" data-code="KeyL" aria-label="Guard"><span>⛨</span><i>GUARD</i></button>
         <button class="tb mid flask" data-code="KeyQ" aria-label="Drink vial"><span>⚱</span><i id="t-vials">VIAL</i></button>
+        <button class="tb mid tonic" data-code="KeyT" aria-label="Drink tonic"><span>✚</span><i id="t-tonics">TONIC</i></button>
         <button class="tb ctx exec" data-code="KeyF" aria-label="Execute"><span>☠</span><i>EXECUTE</i></button>
         <button class="tb ctx use" data-code="KeyE" aria-label="Interact"><span>✋</span><i id="t-use">USE</i></button>
       </div>
@@ -87,7 +88,7 @@ const Mobile = {
     document.body.appendChild(root);
     this.el = {
       root, zone: root.querySelector('#t-zone'), stick: root.querySelector('#t-stick'), knob: root.querySelector('#t-knob'),
-      fs: root.querySelector('#t-fs'), vials: root.querySelector('#t-vials'), use: root.querySelector('#t-use'),
+      fs: root.querySelector('#t-fs'), vials: root.querySelector('#t-vials'), tonics: root.querySelector('#t-tonics'), use: root.querySelector('#t-use'),
       exec: root.querySelector('.exec'), useBtn: root.querySelector('.use'),
     };
     if (!this.fsSupported()) this.el.fs.style.display = 'none';
@@ -204,6 +205,9 @@ const Mobile = {
       if (it && this.el.use.textContent !== it.label.split(' ')[0].toUpperCase()) this.el.use.textContent = it.label.split(' ')[0].toUpperCase();
       const v = `VIAL ${p.flasks}`;
       if (this.el.vials.textContent !== v) this.el.vials.textContent = v;
+      const tn = `TONIC ${p.tonics}`;
+      if (this.el.tonics.textContent !== tn) this.el.tonics.textContent = tn;
+      this.el.tonics.parentNode.classList.toggle('urgent', !!p.turning);
     }
     if (Sfx.muted !== this.lastMute) { this.lastMute = Sfx.muted; this.el.snd.style.opacity = Sfx.muted ? '0.4' : '1'; this.el.snd.textContent = Sfx.muted ? '✕♪' : '♪'; }
     const fs = this.isFullscreen();

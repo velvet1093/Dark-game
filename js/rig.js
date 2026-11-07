@@ -103,6 +103,10 @@ function drawArm(ctx, j, side, st) {
     ctx.beginPath(); ctx.ellipse(sh.x, sh.y + 2, 7, 5.5, 0, Math.PI, 0); ctx.fill();
     ctx.fillStyle = st.armor; ctx.beginPath(); ctx.ellipse(sh.x, sh.y + 3, 7, 3, 0, 0, Math.PI); ctx.fill();
   }
+  if (st.cuffs) { // white frilled cuff at the wrist
+    const cx = lerp(el.x, hd.x, 0.78), cy = lerp(el.y, hd.y, 0.78);
+    dot(ctx, { x: cx, y: cy }, st.limbW * 0.62, st.cuffs);
+  }
   dot(ctx, hd, st.limbW * 0.55, st.hand || col);
 }
 
@@ -126,7 +130,7 @@ function drawTorso(ctx, j, st, lean) {
     }
   }
   if (st.tabard) {
-    const w1 = st.shW * 0.55, w2 = st.hipW * 0.8, ext = st.tabardLen || 14;
+    const w1 = st.shW * 0.55, w2 = st.hipW * 0.8 * (st.flare || 1), ext = st.tabardLen || 14;
     const bx = hip.x - dx * ext, by = hip.y - dy * ext;
     ctx.fillStyle = st.tabard;
     ctx.beginPath();
@@ -137,6 +141,10 @@ function drawTorso(ctx, j, st, lean) {
     ctx.lineTo(bx - nx * w2 * 0.2, by - ny * w2 * 0.2 - 1);
     ctx.lineTo(bx - nx * w2, by - ny * w2 + 2);
     ctx.closePath(); ctx.fill();
+    if (st.frill) { // frilled white hem
+      ctx.fillStyle = st.frill;
+      for (let i = 0; i <= 6; i++) { const t2 = i / 6; const fx2 = lerp(bx - nx * w2, bx + nx * w2, t2), fy2 = lerp(by - ny * w2 + 2, by + ny * w2, t2); ctx.beginPath(); ctx.arc(fx2, fy2, 1.8, 0, Math.PI * 2); ctx.fill(); }
+    }
     if (st.emblem) { // the Grey Lantern sigil
       const ex = lerp(hip.x, sh.x, 0.62), ey = lerp(hip.y, sh.y, 0.62);
       ctx.fillStyle = st.emblem;
@@ -144,10 +152,28 @@ function drawTorso(ctx, j, st, lean) {
       ctx.fillRect(ex - 0.7, ey - 5.5, 1.4, 3);
     }
   }
+  if (st.collar) { // white high collar and frilled bib
+    const cx = lerp(hip.x, sh.x, 0.82), cy = lerp(hip.y, sh.y, 0.82);
+    ctx.fillStyle = st.collar;
+    ctx.beginPath();
+    ctx.moveTo(sh.x - nx * (st.shW * 0.7), sh.y - ny * (st.shW * 0.7));
+    ctx.lineTo(sh.x + nx * (st.shW * 0.7), sh.y + ny * (st.shW * 0.7));
+    ctx.lineTo(cx + nx * 3.5 - dx * 7, cy + ny * 3.5 - dy * 7);
+    ctx.lineTo(cx - nx * 3.5 - dx * 7, cy - ny * 3.5 - dy * 7);
+    ctx.closePath(); ctx.fill();
+    for (let i = 0; i < 4; i++) { const t2 = i / 3; ctx.beginPath(); ctx.arc(lerp(sh.x, cx - dx * 7, t2) + nx * 4, lerp(sh.y, cy - dy * 7, t2) + ny * 4, 1.4, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = '#2a1a2a'; ctx.fillRect(cx - 0.8 - dx * 2, cy - dy * 2 - 1, 1.6, 4); // ribbon
+    if (st.lacing) { // corset lacing
+      ctx.strokeStyle = st.collar; ctx.lineWidth = 0.6;
+      for (let i = 0; i < 4; i++) { const t2 = 0.18 + i * 0.1; const lx = lerp(hip.x, sh.x, t2), ly = lerp(hip.y, sh.y, t2); ctx.beginPath(); ctx.moveTo(lx - nx * 2.5, ly - ny * 2.5 - 1.5); ctx.lineTo(lx + nx * 2.5, ly + ny * 2.5 + 1.5); ctx.moveTo(lx + nx * 2.5, ly + ny * 2.5 - 1.5); ctx.lineTo(lx - nx * 2.5, ly - ny * 2.5 + 1.5); ctx.stroke(); }
+    }
+  }
+  if (st.blood) { ctx.fillStyle = 'rgba(120,6,6,0.7)'; ctx.beginPath(); ctx.ellipse(lerp(hip.x, sh.x, 0.5) + 2, lerp(hip.y, sh.y, 0.5), 4, 7, 0.3, 0, Math.PI * 2); ctx.fill(); }
   if (st.belly) { // a swollen gut pushing out of the apron
     const cx = lerp(hip.x, sh.x, 0.35) + nx * 2 + 6, cy = lerp(hip.y, sh.y, 0.35);
     ctx.fillStyle = st.skin; ctx.beginPath(); ctx.ellipse(cx, cy, st.hipW * 0.8, st.hipW * 1.0, lean, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = 'rgba(80,20,20,0.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx - 3, cy - 6); ctx.lineTo(cx + 2, cy + 4); ctx.stroke();
+    if (st.pustules) for (const [px, py, pr] of [[-3, -4, 2], [3, 2, 2.6], [-1, 6, 1.8], [4, -6, 1.6], [-5, 3, 1.4]]) { dot(ctx, { x: cx + px, y: cy + py }, pr, '#c8b040'); dot(ctx, { x: cx + px - 0.4, y: cy + py - 0.4 }, pr * 0.4, '#f0e090'); }
   }
   if (st.belt) {
     const bx = lerp(hip.x, sh.x, 0.08), by = lerp(hip.y, sh.y, 0.08);
@@ -186,7 +212,7 @@ function drawHead(ctx, c, ang, st, t) {
       ctx.fillStyle = st.armorLight; ctx.fillRect(-r + 1, -r - 2, r * 2 - 2, 3);
       ctx.fillStyle = st.armorDark; ctx.fillRect(-r, r - 1, r * 2, 3);
       ctx.fillStyle = '#050505'; ctx.fillRect(0, -3.5, r + 0.5, 2.6);
-      ctx.fillStyle = '#ffd9a0'; ctx.globalAlpha = 0.35 + Math.sin((t || 0) * 2) * 0.1; ctx.fillRect(r - 3, -3.2, 2, 2); ctx.globalAlpha = 1;
+      ctx.fillStyle = st.visor || '#ffd9a0'; ctx.globalAlpha = st.visor ? 0.95 : 0.35 + Math.sin((t || 0) * 2) * 0.1; ctx.fillRect(r - 3, -3.2, st.visor ? 4 : 2, 2); ctx.globalAlpha = 1;
       ctx.fillStyle = '#1a1a1a';
       for (let i = 0; i < 3; i++) ctx.fillRect(r - 4, 2 + i * 2.2, 1.6, 1.2);
       ctx.strokeStyle = st.armorDark; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(r - 1, -r); ctx.lineTo(r - 1, r + 1); ctx.stroke();
@@ -239,6 +265,46 @@ function drawHead(ctx, c, ang, st, t) {
       ctx.fillStyle = st.hood;
       ctx.beginPath(); ctx.moveTo(-r - 2, r + 3); ctx.quadraticCurveTo(-r - 3, -r - 3, 2, -r - 2); ctx.quadraticCurveTo(r + 1, -r, r, -3);
       ctx.lineTo(1, -4); ctx.quadraticCurveTo(-3, 2, -2, r + 3); ctx.closePath(); ctx.fill();
+      break;
+    }
+    case 'veil': { // Sister of Saint Ysolde: black veil, frilled white band, lily, hair beneath
+      const hair = st.hair || '#e8e4ec';
+      // veil drapes behind the head down past the shoulders
+      ctx.fillStyle = st.veil || '#16131a';
+      ctx.beginPath(); ctx.moveTo(-r * 0.2, -r - 2.5); ctx.quadraticCurveTo(-r - 6, -r, -r - 7, r + 10);
+      ctx.lineTo(-r - 1, r + 14); ctx.quadraticCurveTo(-3, r + 2, 2, r + 1); ctx.lineTo(r + 1, -2); ctx.quadraticCurveTo(r, -r - 3, -r * 0.2, -r - 2.5); ctx.fill();
+      ctx.strokeStyle = st.veilRim || '#3e3446'; ctx.lineWidth = 0.9; ctx.stroke();
+      // long hair falling under the veil (or braids in front)
+      ctx.fillStyle = hair;
+      ctx.beginPath(); ctx.moveTo(-2, -2); ctx.quadraticCurveTo(-6, 8, -4, r + 13); ctx.lineTo(0, r + 10); ctx.quadraticCurveTo(0, 6, 2, 0); ctx.fill();
+      // face
+      dot(ctx, { x: 0.8, y: 0 }, r * 0.9, st.skin);
+      // bangs
+      ctx.fillStyle = hair;
+      ctx.beginPath(); ctx.moveTo(-r * 0.7, -3); ctx.lineTo(-r * 0.4, 2.5); ctx.lineTo(0.5, -2.5); ctx.lineTo(2, 1.5); ctx.lineTo(3.4, -3); ctx.lineTo(5.5, 0.5); ctx.lineTo(r * 0.85, -4); ctx.lineTo(r * 0.7, -7); ctx.lineTo(-r * 0.7, -7); ctx.closePath(); ctx.fill();
+      // eye with iris
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(4.6, -0.5, 1.4, 1.9, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = st.eyeCol || '#8a6ac0'; ctx.beginPath(); ctx.ellipse(4.9, -0.3, 1.0, 1.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillRect(4.5, -1.4, 0.6, 0.6);
+      ctx.strokeStyle = '#1a1014'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(3.1, -1.8); ctx.quadraticCurveTo(4.8, -2.9, 6.4, -1.9); ctx.stroke();
+      if (st.weeping) { ctx.strokeStyle = '#8a0000'; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(4.8, 1.3); ctx.quadraticCurveTo(5.5, 5, 4.5, 8.5); ctx.stroke(); }
+      else { ctx.fillStyle = 'rgba(230,140,150,0.45)'; ctx.beginPath(); ctx.ellipse(3.6, 3, 1.4, 0.8, 0, 0, Math.PI * 2); ctx.fill(); }
+      ctx.strokeStyle = '#9a5a5a'; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(5.5, 5); ctx.lineTo(7, 4.8); ctx.stroke();
+      // frilled white band across the brow
+      ctx.fillStyle = st.band || '#f2eee8';
+      ctx.beginPath(); ctx.arc(0.5, 0, r + 1.2, Math.PI * 1.08, Math.PI * 1.92); ctx.arc(0.5, 0, r - 1.2, Math.PI * 1.92, Math.PI * 1.08, true); ctx.fill();
+      for (let a = 1.1; a < 1.92; a += 0.1) { ctx.beginPath(); ctx.arc(0.5 + Math.cos(a * Math.PI) * (r + 1.3), Math.sin(a * Math.PI) * (r + 1.3), 1, 0, Math.PI * 2); ctx.fill(); }
+      // white lily at the side of the veil
+      ctx.save(); ctx.translate(-r + 0.5, -r + 2.5);
+      ctx.fillStyle = st.band || '#f2eee8';
+      for (let i = 0; i < 5; i++) { ctx.rotate(Math.PI * 2 / 5); ctx.beginPath(); ctx.ellipse(0, -2.4, 1.1, 2.4, 0, 0, Math.PI * 2); ctx.fill(); }
+      ctx.fillStyle = '#e8c860'; ctx.beginPath(); ctx.arc(0, 0, 0.9, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      if (st.braids) { // dark braid over the shoulder
+        ctx.fillStyle = hair;
+        for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.ellipse(-0.5 + i * 0.2, r + 2 + i * 3, 1.8, 2, 0.3, 0, Math.PI * 2); ctx.fill(); }
+        ctx.fillStyle = st.band || '#f2eee8'; ctx.fillRect(-1.5, r + 19, 3, 1.5);
+      }
       break;
     }
     case 'man': { // an uncorrupted survivor
@@ -374,6 +440,16 @@ function drawWeaponShape(ctx, type, blood) {
       ctx.fillStyle = '#8a8680';
       for (let a = 0; a < 6; a++) { const an = a * Math.PI / 3; ctx.beginPath(); ctx.moveTo(Math.cos(an) * 4, 34 + Math.sin(an) * 4); ctx.lineTo(Math.cos(an + 0.3) * 9, 34 + Math.sin(an + 0.3) * 9); ctx.lineTo(Math.cos(an + 0.6) * 4, 34 + Math.sin(an + 0.6) * 4); ctx.fill(); }
       break;
+    case 'sisterstaff': // slim silver staff topped with a lily cross
+      ctx.fillStyle = '#b8b4c0'; ctx.fillRect(-0.9, -40, 1.8, 76);
+      ctx.fillStyle = '#e8e4f0'; ctx.fillRect(-0.9, -52, 1.8, 14); ctx.fillRect(-5, -47, 10, 1.8);
+      ctx.beginPath(); ctx.arc(0, -47, 2.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#9a7ad0'; ctx.beginPath(); ctx.arc(0, -47, 1, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 'hammer':
+      ctx.fillStyle = '#3a2816'; ctx.fillRect(-1.4, -6, 2.8, 30);
+      ctx.fillStyle = '#4a4744'; ctx.fillRect(-6, 22, 12, 8);
+      break;
     case 'shovel':
       ctx.fillStyle = '#4a3a28'; ctx.fillRect(-1.2, -20, 2.4, 52);
       ctx.fillStyle = '#5a5650'; ctx.beginPath(); ctx.moveTo(-5, 31); ctx.lineTo(5, 31); ctx.lineTo(4, 44); ctx.lineTo(0, 47); ctx.lineTo(-4, 44); ctx.closePath(); ctx.fill();
@@ -398,9 +474,12 @@ function drawHumanoid(ctx, j, pose, st, parts, opts) {
     if (opts.weapon2) drawWeaponAt(ctx, j.handB, pose.weapB !== undefined ? pose.weapB : pose.weap, opts.weapon2);
     drawArm(ctx, j, 'B', st);
   }
+  const skirted = !!st.flare; // long habits hide the legs
+  if (skirted) { if (parts.legF) drawLeg(ctx, j, 'F', st); }
   drawTorso(ctx, j, st, pose.lean);
   if (!parts.armB) stump(ctx, { x: j.sh.x - 2, y: j.sh.y + 2 }, st.limbW * 0.6);
-  if (parts.legF) drawLeg(ctx, j, 'F', st); else stump(ctx, { x: j.hip.x + 2, y: j.hip.y + 3 }, st.limbW * 0.65);
+  if (!skirted) { if (parts.legF) drawLeg(ctx, j, 'F', st); }
+  if (!parts.legF) stump(ctx, { x: j.hip.x + 2, y: j.hip.y + 3 }, st.limbW * 0.65);
   if (parts.head) drawHead(ctx, j.head, j.headAngle, st, t);
   else stump(ctx, j.neck, 4.5);
   if (opts.shield && parts.armB) drawShield(ctx, j.handB, st);

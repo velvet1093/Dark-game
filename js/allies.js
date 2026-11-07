@@ -6,6 +6,98 @@
 // A dead survivor stays dead (saved), and their quest fails.
 // ---------------------------------------------------------------------------
 const ALLY_DEFS = {
+  // ---------------- Brackenford ----------------
+  tobias: { name: 'Gate Warden Tobias', fighter: true, hp: 180, dmg: 15, reach: 78, scale: 1.02, weapon: 'spear', shield: true, voice: 130,
+    idle: { lean: 0.05, armF: 0.85, elbowF: 0.8, weap: 2.2, armB: 1.15, elbowB: 0.55, legF: 0.35, kneeF: 0.3, legB: -0.3, kneeB: 0.15 }, style: {
+      helm: 'kettle', helmCol: '#6a675e', skin: '#c79a7e', eye: '#1a1210', armor: '#5d5a52', armorDark: '#45423c', armorLight: '#7a776e',
+      body: '#4a4842', tabard: '#2b4a6b', tabardLen: 16, leg: '#3e3b35', legDark: '#2d2b27', boot: '#221e1a', bootDark: '#181512',
+      hand: '#3a3833', limbW: 7, hipW: 8.5, shW: 10.5, belt: '#2a1d14', shield: '#2b4a6b', shieldRim: '#7a776e', emblemCol: '#c9b77a',
+    } },
+  edric: { name: 'Watchman Edric', fighter: true, hp: 180, dmg: 15, reach: 78, scale: 1.0, weapon: 'spear', shield: true, voice: 120,
+    idle: { lean: 0.05, armF: 0.85, elbowF: 0.8, weap: 2.2, armB: 1.15, elbowB: 0.55, legF: 0.35, kneeF: 0.3, legB: -0.3, kneeB: 0.15 }, style: {
+      helm: 'kettle', helmCol: '#6a675e', skin: '#c79a7e', eye: '#1a1210', armor: '#5d5a52', armorDark: '#45423c', armorLight: '#7a776e',
+      body: '#4a4842', tabard: '#2b4a6b', tabardLen: 16, leg: '#3e3b35', legDark: '#2d2b27', boot: '#221e1a', bootDark: '#181512',
+      hand: '#3a3833', limbW: 7, hipW: 8.5, shW: 10.5, belt: '#2a1d14', shield: '#2b4a6b', shieldRim: '#7a776e', emblemCol: '#c9b77a',
+    } },
+  jory: { name: 'Jory, a refugee', hp: 70, scale: 0.95, wander: true, voice: 190, idle: { lean: 0.08, armF: 0.35, elbowF: 0.5, armB: 0.15, elbowB: 0.5, legF: 0.15, kneeF: 0.1, legB: -0.12, kneeB: 0.1, head: 0.05 },
+    style: {
+      helm: 'man', hair: '#4a3020', skin: '#c9a68c', armor: '#4a4036', armorDark: '#3a3028', armorLight: '#4a4036',
+      body: '#4a4036', tabard: '#3a3028', tabardLen: 10, leg: '#3a3028', legDark: '#2c241e', boot: '#211a14', bootDark: '#18130f',
+      hand: '#c9a68c', limbW: 6, hipW: 8, shW: 9.5,
+    } },
+  mags: { name: 'Mags the Baker', hp: 70, scale: 0.92, wander: true, voice: 250, idle: { lean: 0.08, armF: 0.35, elbowF: 0.5, armB: 0.15, elbowB: 0.5, legF: 0.15, kneeF: 0.1, legB: -0.12, kneeB: 0.1, head: 0.05 },
+    style: {
+      helm: 'kerchief', kerchief: '#8a6a3a', hair: '#8a5a3a', skin: '#d6b29a', armor: '#6a4a3a', armorDark: '#d8ccb0', armorLight: '#6a4a3a',
+      body: '#6a4a3a', tabard: '#d8ccb0', tabardLen: 28, leg: '#3a3028', legDark: '#2c241e', boot: '#211a14', bootDark: '#18130f',
+      hand: '#d6b29a', limbW: 6, hipW: 8, shW: 9.5,
+    } },
+  reeve: { name: 'Reeve Aldous', hp: 80, scale: 1.0, story: 'reeve', voice: 120,
+    idle: { lean: 0.02, armF: 0.6, elbowF: 1.4, armB: 0.5, elbowB: 1.5, legF: 0.15, kneeF: 0.1, legB: -0.12, kneeB: 0.1 },
+    style: {
+      helm: 'man', hair: '#9a9590', beard: '#a8a49e', skin: '#c49a82', armor: '#5a2a22', armorDark: '#3a1a16', armorLight: '#5a2a22',
+      body: '#5a2a22', tabard: '#3a1a16', tabardLen: 30, leg: '#3a3028', legDark: '#2c241e', boot: '#211a14', bootDark: '#18130f',
+      hand: '#c49a82', limbW: 6.5, emblem: '#d8b860', belt: '#d8b860', hipW: 8, shW: 9.5,
+    } },
+  garrick: { name: 'Garrick the Smith', hp: 90, scale: 1.08, service: 'smith', weapon: 'hammer', voice: 100,
+    idle: { lean: 0.1, armF: 0.4, elbowF: 0.5, weap: 0.5, armB: 0.2, elbowB: 0.6, legF: 0.35, kneeF: 0.3, legB: -0.3, kneeB: 0.15 },
+    style: {
+      helm: 'man', hair: '#1a1410', beard: '#241a12', scar: true, skin: '#b08a6a', armor: '#b08a6a', armorDark: '#3a2a1c', armorLight: '#b08a6a',
+      body: '#4a3626', tabard: '#3a2a1c', tabardLen: 22, leg: '#3a3028', legDark: '#2c241e', boot: '#211a14', bootDark: '#18130f',
+      hand: '#b08a6a', limbW: 8.5, belt: '#1d140c', hipW: 8, shW: 9.5,
+    } },
+  fen: { name: 'Old Fen', hp: 60, scale: 0.95, voice: 140,
+    idle: { lean: -0.3, head: 0.3, armF: 1.6, elbowF: 1.2, armB: 0.4, elbowB: 0.3, legF: 1.5, kneeF: 0.15, legB: 1.35, kneeB: 0.4 },
+    style: {
+      helm: 'man', hair: '#6a6a60', beard: '#7a7a70', skin: '#c09078', armor: '#4a3e30', armorDark: '#2e2620', armorLight: '#4a3e30',
+      body: '#4a3e30', tabard: '#2e2620', tabardLen: 12, leg: '#3a3028', legDark: '#2c241e', boot: '#211a14', bootDark: '#18130f',
+      hand: '#c09078', limbW: 6, hipW: 8, shW: 9.5,
+    } },
+  cass: { name: 'Widow Cass', hp: 60, scale: 0.9, voice: 240,
+    idle: { lean: 0.15, head: 0.35, armF: 1.9, elbowF: 1.6, armB: 1.8, elbowB: 1.7, legF: 1.3, kneeF: 2.6, legB: 0.15, kneeB: 2.35 },
+    style: {
+      helm: 'kerchief', kerchief: '#141214', hair: '#3a2a20', skin: '#ccb09c', armor: '#1e1a1c', armorDark: '#141214', armorLight: '#1e1a1c',
+      body: '#1e1a1c', tabard: '#141214', tabardLen: 30, leg: '#3a3028', legDark: '#2c241e', boot: '#211a14', bootDark: '#18130f',
+      hand: '#ccb09c', limbW: 6, hipW: 8, shW: 9.5,
+    } },
+  // ---------------- the Sisters of Saint Ysolde ----------------
+  agathe: { name: 'Mother Agathe', hp: 70, scale: 1.0, story: 'agathe', voice: 200, idle: { lean: 0.05, armF: 1.25, elbowF: 1.7, armB: 1.15, elbowB: 1.8, legF: 0.12, kneeF: 0.1, legB: -0.1, kneeB: 0.08, head: 0.12 },
+    style: {
+      helm: 'veil', veil: '#141016', band: '#f4f0ea', hair: '#a8a4a0', eyeCol: '#5a6a8a', skin: '#efd6c6', 
+      armor: '#1a161c', armorDark: '#120f14', armorLight: '#2a242e', body: '#1c181e', tabard: '#1c181e', tabardLen: 34,
+      leg: '#2a2228', legDark: '#1e181c', boot: '#141014', bootDark: '#0e0b0e', hand: '#efd6c6', limbW: 6, hipW: 8.5, shW: 9.5,
+      collar: '#f4f0ea', cuffs: '#f4f0ea', frill: '#f4f0ea', flare: 1.7, lacing: false,
+    } },
+  elowen: { name: 'Sister Elowen', hp: 70, scale: 1.0, service: 'purify', weapon: 'sisterstaff', voice: 280,
+    idle: { lean: 0.04, armF: 0.6, elbowF: 0.9, weap: 0.25, armB: 1.2, elbowB: 1.8, legF: 0.12, kneeF: 0.1, legB: -0.1, kneeB: 0.08, head: 0.1 },
+    style: {
+      helm: 'veil', veil: '#141016', band: '#f4f0ea', hair: '#ece8f2', eyeCol: '#9a7ad0', skin: '#efd6c6', 
+      armor: '#1a161c', armorDark: '#120f14', armorLight: '#2a242e', body: '#1c181e', tabard: '#1c181e', tabardLen: 26,
+      leg: '#2a2228', legDark: '#1e181c', boot: '#141014', bootDark: '#0e0b0e', hand: '#efd6c6', limbW: 6, hipW: 8.5, shW: 9.5,
+      collar: '#f4f0ea', cuffs: '#f4f0ea', frill: '#f4f0ea', flare: 1.7, lacing: true,
+    } },
+  maelis: { name: 'Sister Maelis', hp: 70, scale: 1.0, service: 'tonics', voice: 290, idle: { lean: 0.05, armF: 1.25, elbowF: 1.7, armB: 1.15, elbowB: 1.8, legF: 0.12, kneeF: 0.1, legB: -0.1, kneeB: 0.08, head: 0.12 },
+    style: {
+      helm: 'veil', veil: '#141016', band: '#f4f0ea', hair: '#2a1c18', eyeCol: '#8a3a3a', skin: '#efd6c6', braids: true,
+      armor: '#1a161c', armorDark: '#120f14', armorLight: '#2a242e', body: '#1c181e', tabard: '#1c181e', tabardLen: 26,
+      leg: '#2a2228', legDark: '#1e181c', boot: '#141014', bootDark: '#0e0b0e', hand: '#efd6c6', limbW: 6, hipW: 8.5, shW: 9.5,
+      collar: '#f4f0ea', cuffs: '#f4f0ea', frill: '#f4f0ea', flare: 1.7, lacing: true,
+    } },
+  // ---------------- the Weeping Mire ----------------
+  ysane: { name: 'Sister Ysane', hp: 80, scale: 1.0, quest: 'ysane', serviceAfterQuest: 'purify', voice: 270,
+    idle: { lean: 0.1, armF: 0.6, elbowF: 1.6, armB: 0.5, elbowB: 1.7, legF: 0.15, kneeF: 0.1, legB: -0.12, kneeB: 0.1, head: 0.2 },
+    style: {
+      helm: 'veil', veil: '#141016', band: '#f4f0ea', hair: '#6a3a22', eyeCol: '#4a7a5a', skin: '#efd6c6', braids: true,
+      armor: '#1a161c', armorDark: '#120f14', armorLight: '#2a242e', body: '#1c181e', tabard: '#1c181e', tabardLen: 26,
+      leg: '#2a2228', legDark: '#1e181c', boot: '#141014', bootDark: '#0e0b0e', hand: '#efd6c6', limbW: 6, hipW: 8.5, shW: 9.5,
+      collar: '#f4f0ea', cuffs: '#f4f0ea', frill: '#f4f0ea', flare: 1.7, lacing: true,
+    } },
+  holt: { name: 'Ferryman Holt', fighter: true, hp: 200, dmg: 17, reach: 80, scale: 1.04, weapon: 'spear', voice: 110,
+    idle: { lean: 0.08, armF: 0.85, elbowF: 0.8, weap: 2.3, armB: 0.6, elbowB: 1.0, legF: 0.35, kneeF: 0.3, legB: -0.3, kneeB: 0.15 },
+    style: {
+      helm: 'man', hair: '#7a7a70', beard: '#8a8a80', skin: '#b8906e', armor: '#3a4030', armorDark: '#2a2e22', armorLight: '#3a4030',
+      body: '#3a4030', tabard: '#2a2e22', tabardLen: 14, leg: '#3a3028', legDark: '#2c241e', boot: '#211a14', bootDark: '#18130f',
+      hand: '#b8906e', limbW: 6, hipW: 8, shW: 9.5,
+    } },
   bram: {
     name: 'Sergeant Bram', fighter: true, hp: 170, dmg: 15, reach: 78, scale: 1.02, weapon: 'spear', shield: true, quest: 'bram',
     idle: { lean: 0.05, armF: 0.85, elbowF: 0.8, weap: 2.2, armB: 1.15, elbowB: 0.55, legF: 0.35, kneeF: 0.3, legB: -0.3, kneeB: 0.15 },
@@ -49,6 +141,61 @@ const ALLY_DEFS = {
 };
 
 const ALLY_TALK = {
+  // ---------------- Brackenford ----------------
+  reeve: {
+    first: [
+      { who: 'Reeve Aldous', text: 'A knight? Walking in off the road on his own two feet? Then the road isn\'t lost yet.' },
+      { who: 'Reeve Aldous', text: 'Aldous, Reeve of Brackenford. We shut the gates the day Hallowmere burned. Nobody infected gets in. Nobody.' },
+      { who: 'Reeve Aldous', text: 'The Weeping isn\'t a curse, whatever the Bishop\'s men preached. It\'s a sickness of the blood. One bite, one cut from those things, and it starts creeping through you.' },
+      { who: 'Reeve Aldous', text: 'The infected don\'t sleep. Don\'t stop. They hunt, restless and hungry for killing, until something kills them. Every wound they deal makes another of them.' },
+      { who: 'Reeve Aldous', text: 'If you\'ve been wounded out there, go to the Chapel of Saint Ysolde at the east end of town. The Sisters can draw the sickness out. Go now, before it\'s too late.' },
+    ],
+    after: [{ who: 'Reeve Aldous', text: 'Keep your blade clean and your wounds cleaner, knight. The chapel is east, past the smithy.' }],
+  },
+  agathe: {
+    first: [
+      { who: 'Mother Agathe', text: 'Peace, child. Come into the light. Let me see your eyes... Yes. The Weeping has found you already. It always does.' },
+      { who: 'Mother Agathe', text: 'I am Mother Agathe of the Sisters of Saint Ysolde. Ysolde walked into a plague four hundred years ago and drew it out of the dying with her own blood and prayer.' },
+      { who: 'Mother Agathe', text: 'We keep her rite. We cannot cure the Weeping, not truly. But we can draw it out of you, again and again, for as long as you keep coming back to us.' },
+      { who: 'Mother Agathe', text: 'The sickness pours from the cathedral, from the Heart of Saint Varn. Bishop Malachar opened something that should have stayed sealed, and all of Vael is bleeding from that wound.' },
+      { who: 'Mother Agathe', text: 'Sister Elowen will purify you whenever you need it. Sister Maelis brews tonics to hold the Weeping back on the road.' },
+      { who: 'Mother Agathe', text: 'And if you cross the Mire, look for Sister Ysane. She went to the Drowned Chapel to tend the dying a week ago. She has not come back.' },
+    ],
+    after: [{ who: 'Mother Agathe', text: 'Ysolde walks with those who bleed for others. Remember that, child.' }],
+  },
+  elowen: {
+    first: [{ who: 'Sister Elowen', text: 'Mother Agathe told me about you. Sit, please. This will sting, and then it will be quiet.' }],
+    greet: [{ who: 'Sister Elowen', text: 'Back again, Sir Knight? Let me see the wound.' }],
+  },
+  maelis: {
+    first: [{ who: 'Sister Maelis', text: 'The tonics are bitter. That\'s how you know they work. One will push the Weeping back, even halt a turning, for a while.' }],
+    greet: [{ who: 'Sister Maelis', text: 'Need more? Mind the dose. And come back to us, please.' }],
+  },
+  garrick: {
+    first: [{ who: 'Garrick', text: 'That\'s a fine old blade, scarred to the tang. Give me embers for the coals and I\'ll put an edge on it that bites through mail.' }],
+    greet: [{ who: 'Garrick', text: 'Back for more steel?' }],
+  },
+  tobias: { barks: ['Brackenford\'s gates are open to the living. Keep your blade sheathed in town.', 'Saw a carrier burst near the gate last week. Burned my boots after.'] },
+  edric: { barks: ['East gate. Hallowmere\'s beyond, what\'s left of it. Mind the fires.', 'If you come back with red in your eyes, I\'ll have to stop you. No offence.'] },
+  jory: { barks: ['I came from Hallowmere. My whole street... I watched them turn. Their eyes just filled up red.', 'They don\'t stop, sir. They don\'t ever stop. I hear them scratching at the walls at night.'] },
+  mags: { barks: ['Bread\'s half sawdust now, but it\'s warm. Nobody goes hungry while I\'ve an oven.', 'My sister\'s in the chapel infirmary. The Sisters say the Weeping\'s slowed in her. Slowed...'] },
+  fen: { barks: ['Drink? No? More for me. Drink keeps the Weeping out, everyone knows that.', 'I seen the Headsman once. Big as a bell tower. Wept like a babe when he swung.'] },
+  cass: { barks: ['My husband was bitten bringing in the harvest. The Sisters held it back for a month. Then he stopped coming to the chapel.', 'Don\'t stop going to them, knight. Whatever happens, don\'t stop going.'] },
+  holt: { barks: ['Ferried folk across this bog for thirty years. Now I ferry them into the ground.', 'The fat ones, the carriers... don\'t be close when they drop. Their bile gets in you.'] },
+  ysane: {
+    intro: [
+      { who: 'Sister Ysane', text: 'Stay back! I... oh. A knight. Forgive me, I thought you were one of my sisters. The ones who turned.' },
+      { who: 'Sister Ysane', text: 'I am Sister Ysane. Three of us came to the Drowned Chapel to nurse the dying. The Weeping took the other two.' },
+      { who: 'Sister Ysane', text: 'They\'re still out there, in their habits, with knives. Please... give them rest. I cannot do it myself.' },
+    ],
+    progress: [{ who: 'Sister Ysane', text: 'They were my sisters. Please, end it quickly for them.' }],
+    complete: [
+      { who: 'Sister Ysane', text: 'Thank you. Ysolde keep them.' },
+      { who: 'Sister Ysane', text: 'Let me repay you the only way I can. Whenever you pass this way, I will draw the Weeping out of you, as they do in Brackenford.' },
+      { who: 'Sister Ysane', text: 'Take these too. Tonics I brewed for my sisters. They won\'t need them now. (+2 Purging Tonics)' },
+    ],
+    after: [{ who: 'Sister Ysane', text: 'Kneel, Sir Knight. Let me see how deep it runs.' }],
+  },
   bram: {
     intro: [
       { who: 'Sergeant Bram', text: 'Stay back, they— oh. A knight. A real one. Thank God.' },
@@ -104,6 +251,26 @@ const ALLY_TALK = {
   },
 };
 
+// what a person says, and what happens afterwards
+function allyTalk(a) {
+  const d = a.def, f = Game.flags, T = ALLY_TALK[a.id];
+  if (d.quest) {
+    const r = Quests.talk(a), q = f.quests[d.quest];
+    if (d.serviceAfterQuest && q && q.status === 'done' && !r.after) return { lines: r.lines, after: () => Game.openService(d.serviceAfterQuest, a) };
+    return r;
+  }
+  if (d.story) {
+    if (!f[d.story]) return { lines: T.first, after: () => { f[d.story] = true; } };
+    return { lines: T.after };
+  }
+  if (d.service) {
+    const met = f['met_' + a.id];
+    return { lines: met ? T.greet : T.first, after: () => { f['met_' + a.id] = true; Game.openService(d.service, a); } };
+  }
+  a.bark = (a.bark || 0) + 1;
+  return { lines: [{ who: d.name, text: T.barks[(a.bark - 1) % T.barks.length] }] };
+}
+
 class Ally {
   constructor(id, spawn, dead) {
     const d = ALLY_DEFS[id];
@@ -158,8 +325,16 @@ class Ally {
       case 'idle':
       case 'return': {
         const hd = this.homeX - this.x;
-        if (Math.abs(hd) > 6) { this.facing = Math.sign(hd); this.vx = this.facing * 70; this.state = 'return'; }
-        else { this.vx = 0; this.state = 'idle'; this.facing = Math.sign(p.x - this.x) || 1; }
+        if (Math.abs(hd) > (this.def.wander ? 70 : 6)) { this.facing = Math.sign(hd); this.vx = this.facing * 70; this.state = 'return'; }
+        else {
+          this.vx = 0; this.state = 'idle';
+          if (Math.abs(p.x - this.x) < 160 || !this.def.wander) this.facing = Math.sign(p.x - this.x) || 1;
+        }
+        if (this.def.wander && Math.abs(p.x - this.x) > 120) { // townsfolk go about their business
+          this.wanderT = (this.wanderT || rand(1, 3)) - dt;
+          if (this.wanderT <= 0) { this.wanderT = rand(2.5, 5); this.wanderTo = this.homeX + rand(-60, 60); }
+          if (this.wanderTo !== undefined && Math.abs(this.wanderTo - this.x) > 6) { this.facing = Math.sign(this.wanderTo - this.x); this.vx = this.facing * 32; this.state = 'idle'; }
+        }
         if (foe) { this.state = this.fighter ? 'engage' : 'cower'; this.st = 0; }
         break;
       }
@@ -302,7 +477,7 @@ class Ally {
         if (Math.abs(this.vx) > 1) tgt = walkPose(tgt, this.t * 9, 0.35, 0);
         break;
       case 'hurt': tgt = Object.assign({}, d, { lean: -0.4, head: -0.4 }); k = 1 - Math.exp(-dt * 25); break;
-      case 'return': case 'engage':
+      case 'idle': case 'return': case 'engage':
         tgt = Math.abs(this.vx) > 1 ? walkPose(d, this.t * 8, 0.45, 0.05) : d; break;
       default: tgt = Object.assign({}, d, { lean: d.lean + Math.sin(this.t * 2) * 0.03 });
     }

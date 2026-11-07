@@ -52,7 +52,7 @@ Desktop browsers can force touch controls with `index.html?touch`.
 | Hamstring Cut (aims at the legs) | `S` + Attack |
 | Guard (tap right before a hit to **parry**) | hold `L` or `C` |
 | **Execute** a weakened foe | `F` |
-| Drink a vial | `Q` |
+| Drink a vial · drink a tonic | `Q` · `T` |
 | Speak / read / rest | `E` |
 | Pause · Mute | `Esc` · `M` |
 
@@ -89,10 +89,11 @@ a `?` means it's ready to hand in.
 
 | Quest | Giver | Steps | Reward |
 | --- | --- | --- | --- |
-| **The Ashen Oath** (main) | — | Speak with the dying monk → reach Hallowmere → find the gravedigger → climb to the cathedral → defeat Gaul → descend into the crypt | The ending |
+| **The Ashen Oath** (main) | — | Speak with the dying monk → reach Brackenford → speak with the Reeve → seek Mother Agathe at the chapel → reach Hallowmere → find the gravedigger → cross the Mire → climb to the cathedral → defeat Gaul → descend into the crypt | The ending |
 | **Last of the Watch** | Sergeant Bram | Clear 3 hollowed from the road → return | 300 embers |
 | **The Widow at the Barricade** | Hedda | Slay the 2 flagellants hunting her → return | +1 vial |
 | **A Sellsword's Price** | Odo | Cut down 2 turned garrison men with Odo → return | 500 embers |
+| **The Lost Sister** | Sister Ysane | Give rest to the 2 Weeping Sisters → return | 2 tonics, and Ysane purifies you in the Mire |
 | **The Torn Page** | Brother Anselm | Find the torn scripture page → bring it back | 400 embers |
 
 ## Survivors
@@ -112,13 +113,15 @@ Lumi mourns them. Brother Osric and Wren are in safe places and can't be attacke
 
 | Enemy | Notes |
 | --- | --- |
-| Hollowed Villager | Slow club swings; some feed on corpses or kneel in prayer |
+| Infected Villager | Slow club swings; some feed on corpses or kneel in prayer |
 | Grave Crawler | Legless; drags itself along and claws at your ankles |
 | Fallen Garrison | Sword and shield; blocks light attacks |
 | Red Flagellant | Fast knife flurries and a leaping pounce |
 | Beaked Physician | Plague-doctor mask; long reach with a hooked cane and censer |
 | Sackhead Butcher | Huge, armoured against flinching, crushing maul blows |
 | Templar of the Red Lantern | Great helm and cross shield; chained mace combos, blocks often |
+| Bloated Carrier | Swollen with the Weeping; bursts on death, spraying infected bile on anyone close |
+| Weeping Sister | A Sister of Saint Ysolde who turned; fast twin-knife flurries and a lunge |
 | Gaul, the Penitent Headsman | The boss |
 
 ## Fairy guides
@@ -149,6 +152,38 @@ Sound effects include sword swings, flesh hits, bone-crack severs, arterial spur
 parry rings, armour rattles on rolls, footsteps on mud or stone, enemy grunts before they
 strike, hollowed villagers groaning, limbs thudding to the ground, fire crackle, rain, fairy
 chimes, pages and the cathedral doors. `M` (or the ♪ button on mobile) mutes everything.
+
+## The Red Weeping (infection)
+
+The Weeping is a sickness of the blood. Every wound dealt by the infected feeds your
+**INFECTION** bar (under stamina). Crawlers, carriers and Weeping Sisters carry the most;
+blocking lets only a trickle through. Above 50% your stamina recovers more slowly; above 75%
+your heart pounds and the edges of your sight go red.
+
+When the bar fills, **the Weeping takes hold**: a 90-second countdown starts. While turning you
+hit 25% harder, but if the timer runs out you **turn**. Your embers are lost for good, and you
+wake at your last shrine with the infection at 50%.
+
+Cures:
+- **The Rite of Saint Ysolde.** Sister Elowen at the chapel in Brackenford (and Sister Ysane in
+  the Mire, once you help her) purifies you completely, free, any number of times.
+- **Purging Tonics** (`T`, or the ✚ TONIC button on mobile). Each one removes 45% infection, or
+  halts a turning. Sister Maelis sells them for 120 embers; you can carry 3.
+- Lantern shrines heal you but do **not** cure the Weeping.
+
+## The valley
+
+The map is now five regions, about 15,500 px wide:
+
+| Region | What's there |
+| --- | --- |
+| I. The Weeping Road | Gallows, the dying monk, Sergeant Bram |
+| II. **Brackenford** (town) | Walled and safe. Gate guards, Reeve Aldous, Garrick the Smith (hones your sword, +10% per level up to +5), townsfolk, a shrine, and the **Chapel of Saint Ysolde** with Mother Agathe and Sisters Elowen and Maelis |
+| III. Hallowmere, That Was | The burning village, Wren, Hedda, Odo |
+| IV. **The Weeping Mire** | Bog, reeds, the Drowned Chapel shrine, Sister Ysane, Ferryman Holt, carriers and fallen sisters |
+| V. The Steps of Saint Varn | Templars, Brother Anselm, and Gaul the Headsman |
+
+Save data moved to a new slot for this version, so start a New Game.
 
 ## Story
 

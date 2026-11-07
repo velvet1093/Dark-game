@@ -213,6 +213,30 @@ const Sfx = {
     fairyJoin() {
       [1047, 1319, 1568, 2093, 2637].forEach((f, i) => this.tone({ freq: f, dur: 0.9, type: 'sine', vol: 0.07, delay: i * 0.09, attack: 0.02 }));
     },
+    heartbeat() {
+      this.tone({ freq: 55, freqTo: 40, dur: 0.16, type: 'sine', vol: 0.5 });
+      this.tone({ freq: 50, freqTo: 36, dur: 0.18, type: 'sine', vol: 0.35, delay: 0.18 });
+    },
+    whisper() {
+      for (let i = 0; i < 3; i++) this.noise({ dur: rand(0.2, 0.4), type: 'bandpass', freq: rand(1500, 3200), q: 8, vol: 0.06, delay: i * 0.18, attack: 0.08 });
+    },
+    turn() {
+      this.voice(65, 1.6, 0.4, [380, 650, 2200]);
+      this.tone({ freq: 45, freqTo: 30, dur: 2, type: 'sawtooth', vol: 0.2, attack: 0.1 });
+      this.noise({ dur: 1.5, type: 'lowpass', freq: 600, freqTo: 100, vol: 0.4 });
+    },
+    tonic() {
+      this.noise({ dur: 0.3, type: 'bandpass', freq: 800, q: 4, vol: 0.12 });
+      this.tone({ freq: 440, freqTo: 220, dur: 0.6, type: 'triangle', vol: 0.08, delay: 0.2 });
+      this.noise({ dur: 0.5, type: 'highpass', freq: 3000, vol: 0.06, delay: 0.3, attack: 0.1 });
+    },
+    purify() {
+      [523, 659, 784, 1047, 1319].forEach((f, i) => this.tone({ freq: f, dur: 3, type: 'sine', vol: 0.07, attack: 0.4, delay: i * 0.12 }));
+      this.noise({ dur: 2, type: 'highpass', freq: 6000, vol: 0.05, attack: 0.5 });
+      this.voice(330, 2.4, 0.06, [800, 1150]);
+    },
+    coin() { this.tone({ freq: 1800, dur: 0.12, type: 'square', vol: 0.03 }); this.tone({ freq: 2400, dur: 0.2, type: 'sine', vol: 0.05, delay: 0.06 }); },
+    anvil() { this.tone({ freq: 1400, dur: 0.6, type: 'triangle', vol: 0.2 }); this.tone({ freq: 2200, dur: 0.4, type: 'sine', vol: 0.12 }); this.noise({ dur: 0.06, type: 'highpass', freq: 3000, vol: 0.3 }); },
     door() {
       this.noise({ dur: 2.2, type: 'bandpass', freq: 180, freqTo: 90, q: 3, vol: 0.4, attack: 0.3 });
       this.tone({ freq: 55, dur: 2.5, type: 'sawtooth', vol: 0.06, attack: 0.4 });
@@ -464,6 +488,45 @@ const TRACKS = {
       const arp = [0, 1, 2, 3, 2, 1, 2, 3];
       this.pluck(ch[arp[pos]] + 12, t, bus, 0.035, 1.6);
       if (pos === 0 && bar % 4 === 0) this.bell(ch[0] + 24, t, bus, 0.03);
+    },
+  },
+  // Brackenford: a lute and a low fiddle, the last warm place in Vael
+  town: {
+    bpm: 84, step(i, t, bus, e) {
+      const bar = Math.floor(i / 8), pos = i % 8;
+      const prog = [CH.Am, CH.F, CH.C, CH.E];
+      const ch = prog[bar % 4];
+      const pat = [0, 2, 1, 2, 3, 2, 1, 2];
+      this.pluck(ch[pat[pos]] + 12, t, bus, pos === 0 ? 0.06 : 0.04, 0.9);
+      if (pos === 0) { this.pad([ch[0] - 12, ch[0]], t, e * 8, bus, 0.025, 500); this.bass(ch[0] - 12, t, e * 3, bus, 0.05); }
+      if (pos === 4) this.bass(ch[2] - 24, t, e * 3, bus, 0.04);
+      const mel = [76, 74, 72, 71, 72, 69, 71, 68];
+      if (bar % 2 === 1 && pos % 4 === 0) this.choir(mel[(bar + pos / 4) % 8], t, e * 4, bus, 0.018);
+    },
+  },
+  // The Mire: a sick drone, dissonant bells, things moving in the reeds
+  mire: {
+    bpm: 50, step(i, t, bus, e) {
+      const bar = Math.floor(i / 8), pos = i % 8;
+      if (i % 32 === 0) { this.pad([33, 40, 46], t, e * 32, bus, 0.04, 300); }
+      if (pos === 0 && bar % 2 === 0) this.bell(chance(0.5) ? 63 : 64, t, bus, 0.035);
+      if (pos === 4 && chance(0.35)) this.bell(70 + (chance(0.5) ? 1 : 0), t, bus, 0.02);
+      if (chance(0.12)) this.hit(t, bus, 0.04, 2500, 0.3, 'bandpass');
+      if (pos === 0 && bar % 4 === 3) this.choir(58, t, e * 8, bus, 0.02);
+    },
+  },
+  // The chapel: the Sisters sing
+  chapel: {
+    bpm: 54, step(i, t, bus, e) {
+      const bar = Math.floor(i / 8), pos = i % 8;
+      const prog = [CH.D, CH.Bm, CH.G, CH.Amaj];
+      const ch = prog[bar % 4];
+      if (pos === 0) {
+        ch.slice(1).forEach(m => this.choir(m + 12, t, e * 8, bus, 0.026));
+        this.choir(ch[0] + 24, t, e * 8, bus, 0.018);
+        this.pad([ch[0] - 12], t, e * 8, bus, 0.03, 500);
+        if (bar % 4 === 0) this.bell(ch[0] + 24, t, bus, 0.04);
+      }
     },
   },
   // After the Headsman falls: a requiem

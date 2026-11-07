@@ -3,7 +3,7 @@
 // Game controller: states, loop, camera, executions, saving, rendering
 // ---------------------------------------------------------------------------
 const STEP = 1 / 60;
-const SAVE_KEY = 'ashenOath.save.v1';
+const SAVE_KEY = 'ashenOath.save.v2'; // v2: the expanded valley (town, Mire, infection)
 
 const Game = {
   state: 'title', time: 0, acc: 0, last: 0,
@@ -64,6 +64,7 @@ const Game = {
     for (const t of this.toasts) t.t += dt;
     this.toasts = this.toasts.filter(t => t.t < t.life);
     if (this.banner) { this.banner.t += dt; if (this.banner.t > this.banner.life) this.banner = null; }
+    if (this.pulse) this.pulse = Math.max(0, this.pulse - dt * 3);
     if (this.questNote && !this.banner) { this.questNote.t += dt; if (this.questNote.t > this.questNote.life) this.questNote = null; }
     if (this.fadeAlpha > 0) this.fadeAlpha = Math.max(0, this.fadeAlpha - dt * 0.8);
     if (this.player) this.emberDisplay += (this.player.embers - this.emberDisplay) * Math.min(1, dt * 6);
@@ -78,6 +79,7 @@ const Game = {
         if (Input.take('interact') || Input.take('back') || Input.take('confirm')) { this.note = null; this.state = 'play'; Input.clear(); }
         break;
       case 'menu': this.updateMenu(); FX.update(dt); break;
+      case 'service': this.updateService(); FX.update(dt); break;
       case 'pause': this.updatePause(); break;
       case 'dead': this.updateDead(dt); break;
       case 'cutscene': this.updateCutscene(dt); break;
@@ -125,6 +127,8 @@ const Game = {
     const p = this.player;
     p.stats = Object.assign({ vig: 1, end: 1, str: 1 }, s.stats); p.level = s.level || 1;
     p.embers = s.embers || 0; p.maxFlasks = s.maxFlasks || 3;
+    p.weaponLevel = s.weaponLevel || 0; p.infection = s.infection || 0; p.turning = !!s.turning; p.turnT = s.turnT || 90;
+    p.tonics = s.tonics !== undefined ? s.tonics : 1; p.maxTonics = s.maxTonics || 3;
     this.flags = Object.assign({ notes: {} }, s.flags || {});
     Quests.ensure(this.flags);
     this.kindled = new Set(s.kindled || [0]); this.shrine = s.shrine || 0; this.stain = s.stain || null;
@@ -140,6 +144,7 @@ const Game = {
     this.save = {
       v: 1, shrine: this.shrine, kindled: [...this.kindled], stats: p.stats, level: p.level,
       embers: p.embers, maxFlasks: p.maxFlasks, flags: this.flags, stain: this.stain,
+      weaponLevel: p.weaponLevel, infection: p.infection, turning: p.turning, turnT: p.turnT, tonics: p.tonics, maxTonics: p.maxTonics,
     };
     store.set(SAVE_KEY, this.save);
   },
@@ -198,9 +203,10 @@ const Game = {
     if (this.allNotes().some(n => !this.flags.notes[n.id] && near(n.x, 130)) && hint('note')) return;
     if (this.enemies.some(e => !e.dead && e.crippled && near(e.x, 260)) && hint('cripple')) return;
     if (this.enemies.some(e => !e.dead && e.hasShield && e.state === 'chase' && near(e.x, 200)) && hint('shield')) return;
-    const z = zoneIndex(p.x);
-    if (z === 1 && hint('zone1')) return;
-    if (z === 2 && hint('zone2')) return;
+    if (p.turning && hint('turning', 20)) return;
+    if (p.infection >= 50 && !p.turning && hint('infect')) return;
+    const zk = zoneKind(p.x);
+    if (zk !== 'road' && hint('zone_' + zk)) return;
     if (!this.flags.bossDead && near(LEVEL.bossGate, 230) && hint('gate')) return;
     if (this.flags.bossDead && hint('bossdead')) return;
   },
@@ -216,8 +222,9 @@ const Game = {
       const p = this.player, z = zoneIndex(p.x);
       if (this.bossActive && this.boss && !this.boss.dead && !(s === 'dialogue' && this.boss.state === 'standing')) m = 'boss';
       else if (this.flags.bossDead && z === 2) m = 'requiem';
+      else if (p.x > LEVEL.chapel[0] - 60 && p.x < LEVEL.chapel[1] + 40) m = 'chapel';
       else if (LEVEL.shrines.some(sh => this.kindled.has(sh.id) && Math.abs(p.x - sh.x) < 150)) m = 'shrine';
-      else m = ['road', 'village', 'cathedral'][z];
+      else m = ZONES[z].kind;
     }
     Music.play(m);
     Music.setIntensity(this.boss && this.boss.phase2 ? 1 : 0);
@@ -253,7 +260,9 @@ const Game = {
   },
   enemyBounds(e) {
     if (e.boss) return [LEVEL.bossGate + 30, LEVEL.arenaEnd - 10];
-    return [20, LEVEL.bossGate - 30];
+    // the town walls keep the infected out
+    if (e.spawn.x < LEVEL.townSafe[0]) return [20, LEVEL.townSafe[0] - 20];
+    return [LEVEL.townSafe[1] + 20, LEVEL.bossGate - 30];
   },
 
   // ------------------------------------------------------------ play
@@ -303,8 +312,7 @@ const Game = {
     }
     // zones
     const z = zoneIndex(p.x);
-    if (z >= 1) this.flags.reached1 = true;
-    if (z >= 2) this.flags.reached2 = true;
+    this.flags['reached_' + ZONES[z].kind] = true;
     Quests.syncMain();
     if (z !== this.curZone) {
       this.curZone = z;
@@ -384,7 +392,7 @@ const Game = {
       const a = it.obj;
       if (a.dead) { this.toast(`${a.name} lies still in the mud. You were too late.`, 4); return; }
       p.facing = Math.sign(a.x - p.x) || 1; a.facing = -p.facing;
-      const r = Quests.talk(a);
+      const r = allyTalk(a);
       this.startDialogue(r.lines, () => { if (r.after) r.after(); this.saveGame(); });
     } else if (it.kind === 'npc') {
       p.facing = Math.sign(it.obj.x - p.x) || 1;
@@ -623,8 +631,92 @@ const Game = {
   },
 
   // ------------------------------------------------------------ death
+  // the Weeping finishes what the wounds began
+  onPlayerTurned() {
+    const p = this.player;
+    if (p.dead) return;
+    this.turned = true;
+    p.turning = false;
+    p.embers = 0; // a turned knight keeps nothing
+    p.hp = 0; p.state = 'dead'; p.t = 0; p.deathT = 0; p.vx = 0;
+    const c = p.worldPoint(p.joints.head);
+    FX.blood(c.x, c.y, -Math.PI / 2, 1.4, 320, 50, 1.2);
+    Sfx.play('turn');
+    this.exec = null; this.slow = null;
+    this.state = 'dead'; this.deathT = 0;
+    this.saveGame();
+  },
+
+  // ------------------------------------------------------------ services (Sisters, smith)
+  openService(kind, ally) {
+    this.service = { kind, ally, sel: 0 };
+    this.state = 'service'; Input.clear();
+  },
+  serviceInfo() {
+    const p = this.player, k = this.service.kind;
+    if (k === 'purify') {
+      const need = p.infection > 0 || p.turning;
+      return {
+        title: 'The Rite of Saint Ysolde', sub: this.service.ally.name + ' draws the Weeping out with blessed water and prayer.',
+        opts: [
+          { label: 'Receive the Rite', value: p.turning ? 'TURNING' : `${Math.round(p.infection)}%`, disabled: !need, fn: () => {
+            p.cure('full'); p.hp = p.maxHp; Sfx.play('purify'); FX.addShake(2);
+            for (let i = 0; i < 24; i++) FX.add({ k: 'fy', x: p.x + rand(-20, 20), y: GROUND - rand(0, 110), vx: rand(-15, 15), vy: rand(-50, -10), t: 0, life: rand(0.8, 1.6), ph: rand(0, 6) });
+            this.toast('The Weeping leaves you. For now.', 3); this.saveGame();
+          } },
+          { label: 'Leave' },
+        ],
+      };
+    }
+    if (k === 'tonics') {
+      const cost = 120;
+      return {
+        title: 'Purging Tonics', sub: 'Each tonic pushes the infection back, and halts a turning for a time.',
+        opts: [
+          { label: 'Buy a Purging Tonic', value: `${cost} embers   (${p.tonics}/${p.maxTonics})`, disabled: p.embers < cost || p.tonics >= p.maxTonics, fn: () => {
+            p.embers -= cost; p.tonics++; Sfx.play('coin'); this.saveGame();
+          } },
+          { label: 'Leave' },
+        ],
+      };
+    }
+    if (k === 'smith') {
+      const lvl = p.weaponLevel, cost = Math.round(250 * Math.pow(lvl + 1, 1.6));
+      return {
+        title: 'Garrick\'s Forge', sub: 'Each honing adds a tenth to every blow of ' + p.weapon.name + '.',
+        opts: [
+          { label: lvl >= 5 ? `${p.weapon.name} is honed to perfection` : `Hone ${p.weapon.name} to +${lvl + 1}`, value: lvl >= 5 ? '' : `${cost} embers`, disabled: lvl >= 5 || p.embers < cost, fn: () => {
+            p.embers -= cost; p.weaponLevel++; p.recalc(); Sfx.play('anvil'); this.toast(`${p.weapon.name} +${p.weaponLevel}`, 2); this.saveGame();
+          } },
+          { label: 'Leave' },
+        ],
+      };
+    }
+    return { title: '', sub: '', opts: [{ label: 'Leave' }] };
+  },
+  updateService() {
+    const sv = this.service, info = this.serviceInfo(), opts = info.opts;
+    if (Input.take('up')) { sv.sel = (sv.sel + opts.length - 1) % opts.length; Sfx.play('ui'); }
+    if (Input.take('down')) { sv.sel = (sv.sel + 1) % opts.length; Sfx.play('ui'); }
+    const leave = () => { this.service = null; this.state = 'play'; Input.clear(); };
+    const tap = Mobile.takeTap();
+    if (tap) {
+      const i = Math.round((tap.y - (H - 240) / 2 - 116) / 36);
+      const inRow = i >= 0 && i < opts.length && tap.x > W / 2 - 220 && tap.x < W / 2 + 220;
+      if (!inRow || i !== sv.sel) { if (inRow) { sv.sel = i; Sfx.play('ui'); } Input.clear(); return; }
+    }
+    if (Input.take('back') || Input.take('pause', 0.1)) { leave(); return; }
+    if (Input.take('confirm')) {
+      const o = opts[sv.sel];
+      if (!o.fn) { leave(); return; }
+      if (o.disabled) { Sfx.play('ui'); return; }
+      o.fn();
+    }
+  },
+
   onPlayerDeath() {
     const p = this.player;
+    if (this.turned) { this.saveGame(); return; }
     this.stain = p.embers > 0 ? { x: p.x, amount: p.embers } : null;
     p.embers = 0;
     this.exec = null; this.slow = null;
@@ -641,9 +733,13 @@ const Game = {
     this.updateWorldFx(dt);
     this.updateCamera(dt);
     if (this.deathT > 3 && (Input.take('confirm') || Input.take('interact'))) {
+      const p = this.player;
+      if (this.turned) { p.infection = 50; p.turning = false; this.turned = false; }
+      else if (p.turning) { p.turning = false; p.infection = 90; }
       this.setupRun(this.shrine);
       this.state = 'play';
       this.respawnHint = true;
+      this.saveGame();
     }
   },
 
@@ -773,6 +869,14 @@ const Game = {
     ctx.globalCompositeOperation = 'lighter';
     for (const pr of LEVEL.props) {
       if (pr.x < l - 300 || pr.x > r + 300) continue;
+      const glow = { lamppost: [GROUND - 110, 130, '255,190,110', 0.2], forge: [GROUND - 55, 170, '255,120,40', 0.22], chapel: [GROUND - 80, 280, '255,200,140', 0.16],
+        bog: [GROUND + 4, 120, '120,170,70', 0.14], townwall: [GROUND - 120, 110, '255,190,110', 0.16], townhouse: [GROUND - 80, 150, '255,190,110', 0.08] }[pr.type];
+      if (glow) {
+        const [gy, rad, col, a0] = glow, gx = pr.type === 'lamppost' ? pr.x + 13 : pr.x;
+        const gr2 = ctx.createRadialGradient(gx, gy, 6, gx, gy, rad);
+        gr2.addColorStop(0, `rgba(${col},${a0 + Math.sin(t * 7 + pr.x) * 0.02})`); gr2.addColorStop(1, `rgba(${col},0)`);
+        ctx.fillStyle = gr2; ctx.fillRect(gx - rad, gy - rad, rad * 2, rad * 2);
+      }
       if ((pr.type === 'house' && pr.burning) || pr.type === 'brazier') {
         const fy = pr.type === 'brazier' ? GROUND - 70 : GROUND - 120;
         const rad = pr.type === 'brazier' ? 160 : 260;
@@ -843,6 +947,23 @@ const Game = {
     const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.95);
     vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.75)');
     ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+    if (!p.dead && (p.infection > 60 || p.turning)) {
+      // the Weeping creeping in at the edges of sight, throbbing with the heartbeat
+      const k = p.turning ? 0.45 + (this.pulse || 0) * 0.3 : (p.infection - 60) / 40 * 0.3 + (this.pulse || 0) * 0.08;
+      const ig = ctx.createRadialGradient(W / 2, H / 2, H * 0.28, W / 2, H / 2, H * 0.85);
+      ig.addColorStop(0, 'rgba(90,0,30,0)'); ig.addColorStop(1, `rgba(110,0,40,${k})`);
+      ctx.fillStyle = ig; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = `rgba(140,10,40,${k * 0.9})`; ctx.lineWidth = 1.5;
+      const vr = seeded(7);
+      ctx.beginPath();
+      for (let i = 0; i < 14; i++) {
+        const side = i % 4, a = vr();
+        let x0 = side === 0 ? 0 : side === 1 ? W : a * W, y0 = side === 2 ? 0 : side === 3 ? H : a * H;
+        ctx.moveTo(x0, y0);
+        for (let j = 0; j < 4; j++) { x0 += (W / 2 - x0) * 0.12 + (vr() - 0.5) * 30; y0 += (H / 2 - y0) * 0.12 + (vr() - 0.5) * 30; ctx.lineTo(x0, y0); }
+      }
+      ctx.stroke();
+    }
     if (p.hp < p.maxHp * 0.3 && !p.dead) {
       const a = (0.25 + Math.sin(t * 5) * 0.12) * (1 - p.hp / (p.maxHp * 0.3));
       const rg = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.9);
@@ -857,6 +978,7 @@ const Game = {
     if (this.state === 'dialogue') UI.dialogue(ctx, this);
     if (this.state === 'note') UI.note(ctx, this);
     if (this.state === 'menu') UI.shrineMenu(ctx, this);
+    if (this.state === 'service') UI.serviceMenu(ctx, this);
     if (this.state === 'pause') UI.pause(ctx, this);
     if (this.state === 'dead') UI.death(ctx, this);
     if (this.fadeAlpha > 0) { ctx.fillStyle = `rgba(0,0,0,${this.fadeAlpha})`; ctx.fillRect(0, 0, W, H); }

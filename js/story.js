@@ -4,12 +4,13 @@
 // ---------------------------------------------------------------------------
 const STORY = {
   intro: [
-    'In the year of Our Lord 1093, the Red Weeping came to the valley of Vael.',
-    'It began with tears of blood. Then fever. Then the dead would not stay in the earth.',
+    'In the year of Our Lord 1093, a sickness came to the valley of Vael.\nThe people called it the Red Weeping.',
+    'It passes through blood. A bite, a cut, a wound left open.\nThe infected weep red, and then they forget everything but hunger.',
+    'They do not sleep. They do not rest. They hunt the living, restless for the kill,\nand every wound they deal spreads the Weeping further.',
     'The Order of the Grey Lantern rode out to hold the plague at the river ford.\nNone returned.\n\n...Save one.',
-    'Sir Aldric of Vael. Oathsworn knight. Last of his order.',
-    'He swore two oaths. To hold the river, whatever the cost.\nAnd to guard the Heart of Saint Varn, the relic that kept the valley holy.',
-    'The river is lost. He has come home to Hallowmere to learn what became of the other.',
+    'Sir Aldric of Vael. Oathsworn knight. Last of his order.\nAnd already, a thin red line has begun to creep beneath his skin.',
+    'Somewhere ahead, in the walled town of Brackenford, the Sisters of Saint Ysolde still keep their chapel.\nIt is said they can draw the Weeping out of the blood.',
+    'He swore to guard the Heart of Saint Varn, the relic that kept the valley holy.\nHe must live long enough to learn what became of it.',
   ],
 
   ending: [
@@ -23,13 +24,14 @@ const STORY = {
     { who: 'Dying Monk', text: 'Hold, knight... hold. That sigil... the Grey Lantern? God is cruel, to send a ghost to an old man\'s deathbed.' },
     { who: 'Brother Osric', text: 'I am Osric, of the Cathedral of Saint Varn. I fled when the Bishop sealed the doors... with the townsfolk still inside.' },
     { who: 'Brother Osric', text: 'Bishop Malachar took the Heart from its reliquary. He said the Weeping was a test. That the faithful would rise again.' },
-    { who: 'Brother Osric', text: 'They did rise, knight. They rose wrong.' },
+    { who: 'Brother Osric', text: 'They did rise, knight. They rose wrong. Restless. Hungry. Killing anything that still breathes.' },
+    { who: 'Brother Osric', text: 'You are wounded. If it was one of them, the Weeping is in you now. Go east to Brackenford. The Sisters of Saint Ysolde can draw it out.' },
     { who: 'Brother Osric', text: 'Take this. Holy water, blessed before the blessing curdled. Drink, and your wounds will close... for a time.' },
     { who: '', text: 'Received: Vial of Saint\'s Tears. Your vials increase by one.', reward: 'flask' },
     { who: 'Lumi', text: 'Hello! I\'m Lumi. Brother Osric found me asleep inside a lantern shrine. He says I talk too much.' },
     { who: 'Brother Osric', text: 'She does. Take her with you, knight. She knows these roads, and she sees what the dead try to hide.' },
     { who: 'Lumi', text: 'I\'ll ride on your shoulder and keep watch. If you start dying, I\'ll yell. Loudly.' },
-    { who: 'Brother Osric', text: 'Hallowmere lies east, past the gallows. And Gaul keeps the cathedral steps now... You knew him, didn\'t you?' },
+    { who: 'Brother Osric', text: 'Hallowmere lies east, past Brackenford. And Gaul keeps the cathedral steps now... You knew him, didn\'t you?' },
   ],
   osricRepeat: [
     { who: 'Brother Osric', text: 'Go... I will pray while I still remember the words. Rest at the lantern shrines, knight. They are the last holy things in Vael.' },
@@ -63,11 +65,24 @@ const STORY = {
   bossDeath: [
     { who: 'Gaul', text: 'Ah... there it is. The cold. I\'d forgotten it.' },
     { who: 'Gaul', text: 'Malachar is below... in the crypt. He feeds the Heart with the blood of the valley. Every death makes it beat louder.' },
+    { who: 'Gaul', text: 'The Weeping has been in me for months. The axe kept it quiet. Every head I took... it quieted.' },
     { who: 'Gaul', text: 'I was weak, brother. I told myself the axe was a mercy.' },
     { who: 'Gaul', text: 'End it. Break the Heart. And if you see my daughter among the weeping... don\'t let her suffer.' },
   ],
 
   notes: {
+    notice: {
+      title: 'Notice of Quarantine',
+      text: 'BY ORDER OF THE REEVE OF BRACKENFORD\n\nThe gates shall admit no person who weeps red, who bears an unclean bite, or who will not show their eyes to the Watch.\n\nThose wounded beyond the walls shall present themselves to the Sisters of Saint Ysolde without delay.\n\nThose who TURN within the walls shall be put down by the Watch, and their families shall not hold it against us.\n\n— Aldous, Reeve',
+    },
+    ysolde: {
+      title: 'The Rite of Saint Ysolde',
+      text: 'When the Black Fever came to Vael, Ysolde of the river went among the dying and opened her own veins into the basin, and prayed, and washed them.\n\nThe fever left them and went into the water, and the water was poured out upon the stones.\n\nShe did not cure the fever. She only took it from them, again and again, until she had no more blood to give.\n\nThis is our rite. This is our burden.',
+    },
+    journal: {
+      title: 'Sister Ysane\'s Journal',
+      text: 'Day 3. Eleven dying in the chapel ruins. We purify each one twice a day. It is not enough.\n\nDay 5. Sister Brienne was bitten while holding a child down. She laughed it off.\n\nDay 6. Brienne\'s eyes are red. She hums the flagellants\' hymn when she thinks we cannot hear.\n\nDay 7. They are both gone now, Brienne and Oda. They took knives from the kitchen.\n\nI can hear them in the reeds at night, calling my name.',
+    },
     letter: {
       title: 'Bloodstained Letter',
       text: 'My dearest Tomas,\n\nMother wept red this morning. The priest says it is a sign of grace and we must not fetch the physician.\n\nHer eyes, Tomas. I have locked her in the cellar. She is singing down there. She never sang a day in her life.\n\nCome home. Please come home.\n\n— Elsbeth',

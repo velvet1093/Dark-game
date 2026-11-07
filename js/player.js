@@ -18,6 +18,9 @@ class Player {
     this.embers = 0;
     this.maxFlasks = 3;
     this.weaponId = 'longsword';
+    this.weaponLevel = 0;
+    this.infection = 0; this.turning = false; this.turnT = 0;  // the Red Weeping in the knight's blood
+    this.tonics = 1; this.maxTonics = 3;
     this.reset(200);
   }
 
@@ -26,7 +29,7 @@ class Player {
   recalc() {
     this.maxHp = 100 + (this.stats.vig - 1) * 14;
     this.maxSt = 90 + (this.stats.end - 1) * 9;
-    this.dmgMul = 1 + (this.stats.str - 1) * 0.08;
+    this.dmgMul = (1 + (this.stats.str - 1) * 0.08) * (1 + (this.weaponLevel || 0) * 0.1);
   }
 
   reset(x) {
@@ -66,8 +69,9 @@ class Player {
     this.t += dt;
     const s = this.state;
     this.stDelay -= dt;
+    this.updateInfection(dt, g);
     if (this.stDelay <= 0 && s !== 'attack' && s !== 'roll') {
-      this.st = Math.min(this.maxSt, this.st + (s === 'block' ? 20 : s === 'run' ? 0 : 55) * dt);
+      this.st = Math.min(this.maxSt, this.st + (s === 'block' ? 20 : s === 'run' ? 0 : 55) * dt * (this.infection > 50 && !this.turning ? 0.8 : 1));
     }
     if (this.hurtFlash > 0) this.hurtFlash -= dt;
     if (this.healGlow > 0) this.healGlow -= dt;
@@ -85,6 +89,11 @@ class Player {
         if (Input.take('roll') && this.st > 0) { this.startRoll(dir); break; }
         if (Input.take('light') && this.st > 0) { this.startAttack(Input.down('down') ? 'low' : 'light', dir); break; }
         if (Input.take('heavy') && this.st > 0) { this.startAttack('heavy', dir); break; }
+        if (Input.take('tonic')) {
+          if (this.tonics > 0) { this.state = 'tonic'; this.t = 0; this.flaskDone = false; }
+          else g.toast('You carry no Purging Tonic.', 2);
+          break;
+        }
         if (Input.take('flask')) {
           if (this.flasks > 0) { this.state = 'flask'; this.t = 0; this.flaskDone = false; }
           else g.toast('Thy vials are empty.', 2);
@@ -133,6 +142,18 @@ class Player {
           this.hp = Math.min(this.maxHp, this.hp + this.maxHp * 0.42);
           this.healGlow = 0.9; Sfx.play('flask');
           for (let i = 0; i < 14; i++) FX.ember(this.x + rand(-14, 14), GROUND - rand(10, 90));
+        }
+        if (this.t > 1.05) this.state = 'idle';
+        break;
+      case 'tonic':
+        this.vx = dir * 40;
+        if (!this.flaskDone && this.t > 0.6) {
+          this.flaskDone = true; this.tonics--;
+          const wasTurning = this.turning;
+          this.cure(45);
+          Sfx.play('tonic');
+          for (let i = 0; i < 16; i++) FX.add({ k: 'fy', x: this.x + rand(-14, 14), y: GROUND - rand(10, 90), vx: rand(-10, 10), vy: rand(-40, -10), t: 0, life: rand(0.6, 1.2), ph: rand(0, 6) });
+          g.toast(wasTurning ? 'The tonic halts the turning... for now.' : 'The tonic burns going down. The Weeping recedes.', 3);
         }
         if (this.t > 1.05) this.state = 'idle';
         break;
@@ -212,7 +233,7 @@ class Player {
       if (overlap(box, e.hurtbox())) {
         this.hitSet.add(e);
         const res = e.takeHit({
-          dmg: m.damage * this.dmgMul, poise: m.poise, bleed: m.bleed, sever: m.sever,
+          dmg: m.damage * this.dmgMul * (this.turning ? 1.25 : 1), poise: m.poise, bleed: m.bleed, sever: m.sever,
           heavy: !!m.heavy, targets: m.targets, low: m === this.weapon.low,
         }, this, g);
         if (res === 'blocked') { this.state = 'recoil'; this.t = 0; this.vx = -f * 120; return; }
@@ -243,6 +264,7 @@ class Player {
       Sfx.play('clang');
       FX.sparks(chest.x + this.facing * 16, chest.y - 8, 10);
       this.useSt((o.poise || 20) * 1.2 + dmg * 0.4);
+      if (src.def && !src.def.boss) this.addInfection(dmg * 0.08 * (src.def.infect || 1));
       this.hp -= dmg * 0.12;
       if (this.st <= 0) {
         this.st = 0; this.state = 'hurt'; this.t = 0; this.hurtDur = 0.9; this.vx = -fromDir * 140;
@@ -253,6 +275,7 @@ class Player {
     }
     this.hp -= dmg;
     this.hurtFlash = 0.25;
+    if (src.def && !o.noInfect) this.addInfection(dmg * (src.def.boss ? 0.3 : 0.55) * (src.def.infect || 1));
     Mobile.buzz(o.heavy ? 70 : 35);
     FX.slash(chest.x, chest.y, -fromDir, 14 + dmg * 0.4);
     Sfx.play('hurt'); Sfx.play('splat');
@@ -271,6 +294,41 @@ class Player {
     FX.blood(c.x, c.y, -Math.PI / 2, 1.3, 300, 40, 1.2);
     FX.pool(this.x - this.facing * 30, 34);
     Sfx.play('death');
+  }
+
+  // ------------------------------------------------------------ the Red Weeping
+  addInfection(v) {
+    if (this.dead || this.turning || v <= 0) return;
+    const before = this.infection;
+    this.infection = Math.min(100, this.infection + v);
+    if (before < 75 && this.infection >= 75) Game.toast('The Weeping spreads in your veins. Seek the Sisters of Saint Ysolde.', 4);
+    if (this.infection >= 100) this.startTurning();
+  }
+  startTurning() {
+    this.turning = true; this.turnT = 90;
+    Sfx.play('turn');
+    Game.showBanner('THE WEEPING TAKES HOLD', 'Find a Sister or drink a Purging Tonic', '#c01818', 4);
+    FX.addShake(8);
+  }
+  // amount: number to subtract, or 'full' for the Sisters' rite
+  cure(amount) {
+    if (amount === 'full') { this.infection = 0; this.turning = false; return; }
+    if (this.turning) { this.turning = false; this.infection = 70; return; }
+    this.infection = Math.max(0, this.infection - amount);
+  }
+  updateInfection(dt, g) {
+    if (this.dead) return;
+    const beat = this.turning ? 0.55 : this.infection >= 75 ? 1.1 : 0;
+    if (beat) {
+      this.beatT = (this.beatT || 0) - dt;
+      if (this.beatT <= 0) { this.beatT = beat; Sfx.play('heartbeat'); g.pulse = 1; }
+    }
+    if (this.turning) {
+      this.turnT -= dt;
+      if (chance(dt * 6)) { const c = this.worldPoint(this.joints.head); FX.blood(c.x, c.y + 4, Math.PI / 2, 0.3, 40, 1, 0.7); }
+      if (chance(dt * 0.4)) Sfx.play('whisper');
+      if (this.turnT <= 0) g.onPlayerTurned();
+    }
   }
 
   computePose(dt) {
@@ -308,6 +366,7 @@ class Player {
       }
       case 'hurt': tgt = Object.assign({}, PLAYER_IDLE, { lean: -0.35, head: -0.35, armF: 0.2, elbowF: 0.5, weap: 1.2, legF: 0.4, legB: -0.4 }); break;
       case 'recoil': tgt = Object.assign({}, PLAYER_IDLE, { lean: -0.25, armF: 2.2, elbowF: 0.3, weap: 3.2, legB: -0.5 }); break;
+      case 'tonic':
       case 'flask': {
         const drinking = this.t > 0.35 && this.t < 0.85;
         tgt = Object.assign({}, PLAYER_IDLE, { armB: drinking ? 2.4 : 1.2, elbowB: drinking ? 1.9 : 1.3, head: drinking ? -0.35 : 0, lean: drinking ? -0.08 : 0.05 });
@@ -349,7 +408,8 @@ class Player {
     }
     if (this.hurtFlash > 0) ctx.globalAlpha = 0.7 + Math.sin(this.hurtFlash * 60) * 0.3;
     const wp = this.weapon, blood = this.blood;
-    drawHumanoid(ctx, this.joints, this.pose, KNIGHT_STYLE,
+    const kst = this.turning ? Object.assign({}, KNIGHT_STYLE, { visor: '#ff2a1a' }) : KNIGHT_STYLE;
+    drawHumanoid(ctx, this.joints, this.pose, kst,
       { head: true, armF: true, armB: true, legF: true, legB: true },
       { weapon: c => wp.draw(c, blood), t, sway: clamp(this.vx / 240, -1, 1) * this.facing });
     ctx.globalAlpha = 1;
