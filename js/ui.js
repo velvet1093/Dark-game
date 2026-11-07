@@ -67,7 +67,7 @@ const UI = {
       ctx.globalAlpha = 1;
     }
     // toasts
-    let ty = Mobile.enabled ? (g.bossActive ? 150 : 110) : 86;
+    let ty = Mobile.enabled ? (g.questNote && !g.banner ? 252 : 186) : 86;
     for (const t of g.toasts) {
       const a = t.t < 0.4 ? t.t / 0.4 : t.t > t.life - 0.6 ? (t.life - t.t) / 0.6 : 1;
       ctx.globalAlpha = clamp(a, 0, 1) * 0.95;
@@ -79,7 +79,7 @@ const UI = {
       ty += 34;
     }
     ctx.globalAlpha = 1;
-    if (Sfx.muted) UI.text(ctx, 'muted (M)', W - 30, 30, 11, '#6a6050', 'right');
+    if (Sfx.muted) UI.text(ctx, 'muted (M)', W - 30, H - 64, 11, '#6a6050', 'right');
   },
 
   // world-space prompts (drawn inside world transform)
@@ -182,9 +182,14 @@ const UI = {
   },
 
   pause(ctx, g) {
-    ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0, 0, W, H);
+    if (g.pauseView === 'journal') {
+      Quests.drawJournal(ctx, g);
+      UI.text(ctx, Mobile.enabled ? 'tap to close' : 'E / Esc — close', W / 2, H - 22, 12, '#7a6e5a', 'center', BODY_FONT);
+      return;
+    }
     UI.text(ctx, 'PAUSED', W / 2, 90, 36, '#d8c8a4');
-    const opts = ['Resume', 'Quit to Title'];
+    const opts = ['Resume', 'Journal', 'Quit to Title'];
     opts.forEach((o, i) => UI.text(ctx, (i === g.pauseSel ? '›  ' : '') + o, W / 2, 140 + i * 30, 18, i === g.pauseSel ? '#f0d8a0' : '#8a7c62'));
     const ctl = [
       ['A / D', 'Move'], ['Shift', 'Sprint'], ['Space', 'Roll (invulnerable mid-roll)'],
@@ -198,7 +203,7 @@ const UI = {
       ['☠ EXECUTE', 'Finish a weakened foe'], ['⚱ VIAL', 'Drink a vial'], ['✋', 'Speak / read / rest'], ['⛶', 'Fullscreen'], ['❚❚', 'Pause'], ['Tap', 'Continue dialogue']);
     ctl.forEach((c, i) => {
       const col = i < 6 ? 0 : 1;
-      const x = col ? W / 2 + 40 : 140, y = 240 + (i % 6) * 32;
+      const x = col ? W / 2 + 40 : 140, y = 256 + (i % 6) * 30;
       UI.text(ctx, c[0], x, y, 14, '#c9a35a', 'left');
       UI.text(ctx, c[1], x + 150, y, 15, '#bfb59d', 'left', BODY_FONT);
     });

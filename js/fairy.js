@@ -99,18 +99,31 @@ class Fairy {
     };
     const sc = 0.55 + Math.abs(flap) * 0.45;
     wing(0.55, 26, 6, sc); wing(-0.25, 20, 4.5, sc); // far pair
-    // --- long white hair flowing behind
+    // --- long white hair flowing behind: layered locks with strand texture
     const sway = Math.sin(this.t * 2.4) * 2 - clamp(this.vx / 60, -4, 4) * this.facing;
-    ctx.fillStyle = '#f4f1fb';
-    ctx.beginPath();
-    ctx.moveTo(-1, -26);
-    ctx.quadraticCurveTo(-9, -22, -9 + sway * 0.5, -12);
-    ctx.quadraticCurveTo(-11 + sway, -4, -7 + sway * 1.3, 2);
-    ctx.lineTo(-4 + sway, -2); ctx.lineTo(-3 + sway * 0.8, 3);
-    ctx.quadraticCurveTo(-2, -8, 2, -18);
-    ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#d8d1ec';
-    ctx.beginPath(); ctx.moveTo(-3, -20); ctx.quadraticCurveTo(-7 + sway * 0.6, -10, -5 + sway, -1); ctx.lineTo(-4 + sway * 0.7, -8); ctx.closePath(); ctx.fill();
+    const hg = ctx.createLinearGradient(0, -28, 0, 4);
+    hg.addColorStop(0, '#ffffff'); hg.addColorStop(0.55, '#f1edfa'); hg.addColorStop(1, '#d9cff2'); // tips catch the lavender glow
+    const lock = (x0, y0, cx, cy, ex, ey, w, col) => {
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.moveTo(x0 - w, y0);
+      ctx.quadraticCurveTo(cx - w, cy, ex, ey);
+      ctx.quadraticCurveTo(cx + w * 0.6, cy, x0 + w, y0);
+      ctx.closePath(); ctx.fill();
+    };
+    // back layer (shadowed), then the main mass
+    lock(-1, -25, -10 + sway * 0.4, -12, -9 + sway * 1.4, 4, 3.4, '#cfc6e6');
+    lock(-2, -26, -11 + sway * 0.5, -14, -12 + sway * 1.6, 0, 3.0, '#ddd6ef');
+    lock(0, -26, -8 + sway * 0.4, -12, -6 + sway * 1.2, 5, 3.6, hg);
+    lock(-1, -27, -9 + sway * 0.3, -16, -10 + sway, -3, 3.2, hg);
+    lock(1, -25, -5 + sway * 0.3, -10, -3 + sway, 3, 2.4, hg);
+    // strand lines
+    ctx.strokeStyle = 'rgba(160,145,200,0.55)'; ctx.lineWidth = 0.35;
+    for (const [ox, ex, ey] of [[-2, -8.5, 3], [-3.5, -10.5, 0], [-0.5, -6, 4], [-4.5, -11.5, -2], [0.5, -4, 2]]) {
+      ctx.beginPath(); ctx.moveTo(ox, -24); ctx.quadraticCurveTo(ox - 5 + sway * 0.3, -13, ex + sway * 1.3, ey); ctx.stroke();
+    }
+    // sheen
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 0.6;
+    ctx.beginPath(); ctx.moveTo(-3, -21); ctx.quadraticCurveTo(-6 + sway * 0.2, -15, -6 + sway * 0.6, -10); ctx.stroke();
 
     // --- legs (white stockings, lavender shoes) peeking under the dress
     const kick = Math.sin(this.t * 3) * 0.3;
@@ -154,13 +167,59 @@ class Fairy {
 
     // --- head
     ctx.fillStyle = '#f3ddd0'; ctx.beginPath(); ctx.arc(0.6, -23.6, 4.4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(200,150,150,0.25)'; ctx.beginPath(); ctx.arc(-0.6, -22.4, 3.6, Math.PI * 0.5, Math.PI * 1.2); ctx.fill(); // cheek shade
+    ctx.fillStyle = '#f3ddd0';
     ctx.beginPath(); ctx.moveTo(3, -24.5); ctx.lineTo(7.2, -27.5); ctx.lineTo(3.6, -22.6); ctx.fill(); // pointed ear
-    ctx.fillStyle = '#f7f5fd'; // bangs
-    ctx.beginPath(); ctx.arc(0.2, -24.6, 4.7, Math.PI * 0.95, Math.PI * 2.08); ctx.lineTo(4.4, -24); ctx.lineTo(3, -25.6); ctx.lineTo(1.8, -23.6); ctx.lineTo(0.4, -25.8); ctx.lineTo(-1.6, -23.4); ctx.lineTo(-4.2, -23); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = L.eye; ctx.beginPath(); ctx.ellipse(2.6, -22.6, 0.9, 1.2, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.fillRect(2.5, -23.3, 0.5, 0.5);
-    ctx.fillStyle = 'rgba(240,140,170,0.55)'; ctx.beginPath(); ctx.arc(1.6, -20.8, 1, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#a0607a'; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.arc(3.4, -20.6, 0.8, 0.2, Math.PI * 0.9); ctx.stroke();
+    ctx.fillStyle = 'rgba(220,150,150,0.5)'; ctx.beginPath(); ctx.moveTo(3.6, -24.2); ctx.lineTo(6.2, -26.6); ctx.lineTo(3.9, -23.2); ctx.fill();
+    // crown of the hair with a soft halo of sheen
+    const cg = ctx.createLinearGradient(0, -29, 0, -21);
+    cg.addColorStop(0, '#ffffff'); cg.addColorStop(1, '#e9e4f6');
+    ctx.fillStyle = cg;
+    ctx.beginPath(); ctx.arc(0.2, -24.4, 4.9, Math.PI * 0.92, Math.PI * 2.05); ctx.closePath(); ctx.fill();
+    // bangs: separate pointed locks
+    ctx.beginPath();
+    ctx.moveTo(-4.4, -24.6);
+    ctx.quadraticCurveTo(-3.6, -22, -3.9, -20.8);   // side lock tip
+    ctx.lineTo(-2.2, -23.6);
+    ctx.lineTo(-1.1, -21.4); ctx.lineTo(0.1, -24.4);
+    ctx.lineTo(1.3, -21.9); ctx.lineTo(2.2, -24.6);
+    ctx.lineTo(3.4, -22.6); ctx.lineTo(4.3, -24.6);
+    ctx.lineTo(4.9, -24.8);
+    ctx.lineTo(4.6, -26.6); ctx.lineTo(-4.2, -26.6);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(170,155,205,0.6)'; ctx.lineWidth = 0.3;
+    for (const [a, b] of [[-0.6, -21.8], [0.9, -22.3], [2.8, -23], [-2.5, -22.8]]) { ctx.beginPath(); ctx.moveTo(a - 0.6, -26.4); ctx.lineTo(a, b); ctx.stroke(); }
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)'; ctx.lineWidth = 0.55; // angel ring sheen
+    ctx.beginPath(); ctx.arc(0.2, -24.4, 4, Math.PI * 1.2, Math.PI * 1.65); ctx.stroke();
+    // eye: sclera, gradient iris, pupil, highlights, lashes; blinks now and then
+    const blink = (this.t % 3.7) < 0.12;
+    const ex = 2.75, ey = -22.7;
+    if (blink) {
+      ctx.strokeStyle = '#4a3050'; ctx.lineWidth = 0.55;
+      ctx.beginPath(); ctx.arc(ex, ey - 0.2, 1.2, 0.2, Math.PI - 0.2); ctx.stroke();
+    } else {
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.ellipse(ex, ey, 1.25, 1.7, 0, 0, Math.PI * 2); ctx.fill();
+      const ig = ctx.createLinearGradient(0, ey - 1.6, 0, ey + 1.6);
+      ig.addColorStop(0, '#3e2470'); ig.addColorStop(0.55, L.eye); ig.addColorStop(1, '#d6c2ff');
+      ctx.fillStyle = ig; ctx.beginPath(); ctx.ellipse(ex + 0.25, ey + 0.1, 1.0, 1.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#1e1030'; ctx.beginPath(); ctx.ellipse(ex + 0.3, ey + 0.05, 0.42, 0.7, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(ex - 0.05, ey - 0.6, 0.38, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(ex + 0.65, ey + 0.65, 0.18, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#2a1830'; ctx.lineWidth = 0.6; // upper lash line with a flick
+      ctx.beginPath(); ctx.moveTo(ex - 1.35, ey - 1.0); ctx.quadraticCurveTo(ex, ey - 2.2, ex + 1.5, ey - 1.1); ctx.lineTo(ex + 1.95, ey - 1.6); ctx.stroke();
+      ctx.strokeStyle = 'rgba(80,50,90,0.5)'; ctx.lineWidth = 0.3;
+      ctx.beginPath(); ctx.moveTo(ex - 0.6, ey + 1.65); ctx.lineTo(ex + 0.9, ey + 1.5); ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(190,175,215,0.8)'; ctx.lineWidth = 0.35; // pale brow
+    ctx.beginPath(); ctx.moveTo(ex - 1, ey - 3.1); ctx.quadraticCurveTo(ex + 0.3, ey - 3.6, ex + 1.6, ey - 3.0); ctx.stroke();
+    ctx.fillStyle = 'rgba(240,140,170,0.5)'; ctx.beginPath(); ctx.ellipse(1.5, -20.6, 1.1, 0.6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#a0607a'; ctx.lineWidth = 0.45; ctx.beginPath(); ctx.arc(3.5, -20.4, 0.7, 0.2, Math.PI * 0.9); ctx.stroke();
+    // a side lock falling in front of the shoulder
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.moveTo(-0.5, -25); ctx.quadraticCurveTo(-3.6, -20, -2.6 + sway * 0.3, -13.5); ctx.lineTo(-1.4 + sway * 0.3, -14.5); ctx.quadraticCurveTo(-1.6, -20, 0.6, -24); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(160,145,200,0.5)'; ctx.lineWidth = 0.3;
+    ctx.beginPath(); ctx.moveTo(-0.6, -23.5); ctx.quadraticCurveTo(-2.6, -19, -2.1 + sway * 0.3, -14.3); ctx.stroke();
     // frilled white headband with lavender ribbons
     ctx.fillStyle = L.trim;
     ctx.beginPath(); ctx.arc(0.3, -24.2, 5.4, Math.PI * 1.08, Math.PI * 1.85); ctx.arc(0.3, -24.2, 4.4, Math.PI * 1.85, Math.PI * 1.08, true); ctx.fill();
@@ -205,5 +264,6 @@ const FAIRY_HINTS = {
   respawn: () => 'Up you get! Your embers are still glowing where you fell.',
   bossdead: () => 'You did it! ...Oh, Gaul. Rest now.',
   shield: () => 'That one hides behind a shield. A heavy blow will break his guard!',
+  help: () => "Someone's being attacked! Hurry, Sir Knight!",
   cripple: () => 'Ooh, he lost a leg. Now he can only crawl. Finish him!',
 };

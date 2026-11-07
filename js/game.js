@@ -64,6 +64,7 @@ const Game = {
     for (const t of this.toasts) t.t += dt;
     this.toasts = this.toasts.filter(t => t.t < t.life);
     if (this.banner) { this.banner.t += dt; if (this.banner.t > this.banner.life) this.banner = null; }
+    if (this.questNote && !this.banner) { this.questNote.t += dt; if (this.questNote.t > this.questNote.life) this.questNote = null; }
     if (this.fadeAlpha > 0) this.fadeAlpha = Math.max(0, this.fadeAlpha - dt * 0.8);
     if (this.player) this.emberDisplay += (this.player.embers - this.emberDisplay) * Math.min(1, dt * 6);
 
@@ -107,6 +108,7 @@ const Game = {
     store.del(SAVE_KEY); this.save = null;
     this.player = new Player();
     this.flags = { notes: {} }; this.kindled = new Set([0]); this.shrine = 0; this.stain = null;
+    Quests.ensure(this.flags);
     this.hintsShown = new Set(); this.zonesShown = new Set(); this.fairyShown = new Set(); this.fairyCd = {};
     FX.clearDecals();
     Sfx.startAmbience();
@@ -124,6 +126,7 @@ const Game = {
     p.stats = Object.assign({ vig: 1, end: 1, str: 1 }, s.stats); p.level = s.level || 1;
     p.embers = s.embers || 0; p.maxFlasks = s.maxFlasks || 3;
     this.flags = Object.assign({ notes: {} }, s.flags || {});
+    Quests.ensure(this.flags);
     this.kindled = new Set(s.kindled || [0]); this.shrine = s.shrine || 0; this.stain = s.stain || null;
     this.hintsShown = new Set(LEVEL.hints.map((h, i) => i)); this.zonesShown = new Set(); this.fairyShown = new Set(); this.fairyCd = {};
     FX.clearDecals();
@@ -155,6 +158,7 @@ const Game = {
     this.fadeAlpha = 1;
     this.emberDisplay = this.player.embers;
     this.spawnFairies();
+    this.allies = LEVEL.allies.map(a => new Ally(a.id, a, this.flags.dead[a.id]));
     Input.clear();
   },
 
@@ -188,6 +192,7 @@ const Game = {
     const near = (x, r) => Math.abs(p.x - x) < r;
     if (!p.busy && this.findExecutable() && hint('exec')) return;
     if (p.hp < p.maxHp * 0.3 && (p.flasks > 0 ? hint('lowhp', 25) : hint('novial'))) return;
+    if (this.allies && this.allies.some(a => !a.dead && near(a.x, 640) && (a.state === 'cower' || a.state === 'engage' || a.state === 'hurt')) && hint('help', 30)) return;
     if (this.respawnHint && this.stain) { this.respawnHint = false; this.fairyShown.delete('respawn'); if (hint('respawn')) return; }
     if (LEVEL.shrines.some(s => !this.kindled.has(s.id) && near(s.x, 170)) && hint('shrine')) return;
     if (this.allNotes().some(n => !this.flags.notes[n.id] && near(n.x, 130)) && hint('note')) return;
@@ -274,6 +279,7 @@ const Game = {
 
     p.update(wdt, this);
     for (const e of this.enemies) e.update(wdt, this);
+    for (const a of this.allies) a.update(wdt, this);
     this.separateEnemies();
     this.updateFairies(wdt);
     this.fairyHints();
@@ -297,6 +303,9 @@ const Game = {
     }
     // zones
     const z = zoneIndex(p.x);
+    if (z >= 1) this.flags.reached1 = true;
+    if (z >= 2) this.flags.reached2 = true;
+    Quests.syncMain();
     if (z !== this.curZone) {
       this.curZone = z;
       if (!this.zonesShown.has(z)) { this.zonesShown.add(z); this.showBanner(ZONES[z].name, ZONES[z].num); }
@@ -360,6 +369,7 @@ const Game = {
   nearestInteract() {
     const p = this.player;
     for (const s of LEVEL.shrines) if (Math.abs(p.x - s.x) < 46) return { kind: 'shrine', obj: s, x: s.x, y: GROUND - 132, label: this.kindled.has(s.id) ? 'Rest' : 'Kindle the lantern' };
+    for (const a of this.allies) if (Math.abs(p.x - a.x) < 60) return { kind: 'ally', obj: a, x: a.x, y: GROUND - 140, label: a.dead ? 'Examine' : 'Speak' };
     for (const n of LEVEL.npcs) if (Math.abs(p.x - n.x) < 70) return { kind: 'npc', obj: n, x: n.x, y: GROUND - 120, label: 'Speak' };
     for (const n of this.allNotes()) if (Math.abs(p.x - n.x) < 36) return { kind: 'note', obj: n, x: n.x, y: GROUND - 50, label: 'Read' };
     if (this.flags.bossDead && Math.abs(p.x - (LEVEL.doorX + 20)) < 70) return { kind: 'door', x: LEVEL.doorX + 20, y: GROUND - 240, label: 'Descend into the crypt' };
@@ -370,7 +380,13 @@ const Game = {
     const p = this.player;
     p.vx = 0; p.state = 'idle';
     if (it.kind === 'shrine') this.restAt(it.obj);
-    else if (it.kind === 'npc') {
+    else if (it.kind === 'ally') {
+      const a = it.obj;
+      if (a.dead) { this.toast(`${a.name} lies still in the mud. You were too late.`, 4); return; }
+      p.facing = Math.sign(a.x - p.x) || 1; a.facing = -p.facing;
+      const r = Quests.talk(a);
+      this.startDialogue(r.lines, () => { if (r.after) r.after(); this.saveGame(); });
+    } else if (it.kind === 'npc') {
       p.facing = Math.sign(it.obj.x - p.x) || 1;
       const id = it.obj.id;
       if (!this.flags[id]) this.startDialogue(STORY[id], () => { this.flags[id] = true; if (id === 'osric') this.joinLumi(); this.saveGame(); });
@@ -378,10 +394,12 @@ const Game = {
     } else if (it.kind === 'note') {
       this.note = STORY.notes[it.obj.id];
       this.flags.notes[it.obj.id] = true;
+      Quests.onNote(it.obj.id);
       this.state = 'note'; Sfx.play('page'); Input.clear();
     } else if (it.kind === 'door') {
       Sfx.play('door'); Sfx.play('bell');
       Music.play('requiem');
+      this.flags.ended = true; Quests.syncMain(); this.saveGame();
       this.startNarration(STORY.ending, () => { this.state = 'title'; this.titleSel = 0; this.save = store.get(SAVE_KEY); });
     }
   },
@@ -442,16 +460,23 @@ const Game = {
   },
 
   updatePause() {
-    if (Input.take('up') || Input.take('down')) { this.pauseSel = 1 - this.pauseSel; Sfx.play('ui'); }
+    if (this.pauseView === 'journal') {
+      Mobile.takeTap();
+      if (Input.take('confirm') || Input.take('back') || Input.take('pause', 0.1)) { this.pauseView = null; Sfx.play('ui'); }
+      return;
+    }
+    if (Input.take('up')) { this.pauseSel = (this.pauseSel + 2) % 3; Sfx.play('ui'); }
+    if (Input.take('down')) { this.pauseSel = (this.pauseSel + 1) % 3; Sfx.play('ui'); }
     if (Input.take('pause', 0.1)) { this.state = 'play'; Input.clear(); return; }
     const tap = Mobile.takeTap();
     if (tap) {
       const i = Math.round((tap.y - 134) / 30);
-      if (i >= 0 && i < 2 && Math.abs(tap.x - W / 2) < 140) this.pauseSel = i;
+      if (i >= 0 && i < 3 && Math.abs(tap.x - W / 2) < 140) this.pauseSel = i;
       else { Input.clear(); return; }
     }
     if (Input.take('confirm')) {
       if (this.pauseSel === 0) { this.state = 'play'; Input.clear(); }
+      else if (this.pauseSel === 1) { this.pauseView = 'journal'; Sfx.play('page'); }
       else { this.saveGame(); this.state = 'title'; this.titleSel = 0; Input.clear(); }
     }
   },
@@ -561,7 +586,31 @@ const Game = {
     this.saveGame();
   },
 
+  // enemies hunt whoever is nearest: the knight, or a survivor once the knight is close enough to see it
+  enemyTarget(e) {
+    const p = this.player;
+    if (e.boss || !this.allies) return p;
+    let best = p.dead ? null : p, bd = best ? Math.abs(p.x - e.x) : 1e9;
+    for (const a of this.allies) {
+      if (a.dead || Math.abs(p.x - a.x) > 640) continue;
+      const d = Math.abs(a.x - e.x);
+      if (d < bd - 24 && d < e.def.aggro) { best = a; bd = d; }
+    }
+    return best || p;
+  },
+
+  onAllyDeath(a, how) {
+    this.flags.dead[a.id] = how === 'head' ? 'head' : true;
+    const s = this.flags.quests[a.def.quest];
+    if (!s || s.status === 'active') Quests.fail(a.def.quest, `${a.name} was slain`);
+    this.toast(`${a.name} has been slain.`, 4);
+    const lumi = this.fairies.find(f => f.mode === 'follow');
+    if (lumi) lumi.say(pick(['No... we were too late.', `${a.name}... no. Please, let's go.`]), 4);
+    this.saveGame();
+  },
+
   onEnemyKilled(e, o) {
+    Quests.onKill(e);
     const p = this.player;
     let amt = e.def.embers;
     if (o.execution) amt = Math.round(amt * 1.25);
@@ -586,6 +635,7 @@ const Game = {
     this.deathT += dt;
     this.player.update(dt, this);
     for (const e of this.enemies) e.update(dt, this);
+    for (const a of this.allies) a.update(dt, this);
     this.updateFairies(dt);
     FX.update(dt);
     this.updateWorldFx(dt);
@@ -753,7 +803,13 @@ const Game = {
     // enemies: corpses first, then the living
     for (const e of this.enemies) if (e.dead && e.x > l - 120 && e.x < r + 120) e.draw(ctx, t, false);
     FX.drawGibs(ctx, l, r);
+    for (const a of this.allies) if (a.x > l - 120 && a.x < r + 120) a.draw(ctx, t);
     for (const e of this.enemies) if (!e.dead && e.x > l - 120 && e.x < r + 120) e.draw(ctx, t, true);
+    for (const a of this.allies) {
+      if (a.dead || a.x < l || a.x > r) continue;
+      const mk = Quests.marker(a);
+      if (mk) UI.text(ctx, mk, a.x, GROUND - 130 * a.s + Math.sin(t * 4) * 3, 24, mk === '!' ? '#f0c060' : '#c8d8ff');
+    }
     p.draw(ctx, t);
     for (const f of this.fairies) if (f.x > l - 60 && f.x < r + 60) f.draw(ctx, t);
     FX.drawParts(ctx, l, r);
@@ -797,7 +853,7 @@ const Game = {
     const bars = this.state === 'cutscene' || (this.state === 'dialogue' && this.bossActive) ? 1 : b;
     if (bars > 0.01) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, 44 * bars); ctx.fillRect(0, H - 44 * bars, W, 44 * bars); }
 
-    if (this.state !== 'cutscene') UI.hud(ctx, this);
+    if (this.state !== 'cutscene') { UI.hud(ctx, this); if (this.flags.quests && this.state !== 'dead') { Quests.drawTracker(ctx, this); if (this.state === 'play') Quests.drawArrow(ctx, this); } }
     if (this.state === 'dialogue') UI.dialogue(ctx, this);
     if (this.state === 'note') UI.note(ctx, this);
     if (this.state === 'menu') UI.shrineMenu(ctx, this);

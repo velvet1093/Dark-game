@@ -58,6 +58,61 @@ const ENEMY_DEFS = {
       { id: 'pounce', motion: 'over', windup: 0.45, active: 0.16, recover: 0.7, dmg: 18, poise: 24, reach: 60, yTop: -110, range: 190, minRange: 110, lunge: 420 },
     ],
   },
+  plaguedoc: {
+    name: 'Beaked Physician', hp: 105, poise: 40, speed: 64, runSpeed: 118, aggro: 340, scale: 1.0, embers: 72,
+    weapon: 'staff', coolMin: 0.9, coolMax: 1.7, bleedRes: 1.0,
+    idle: { lean: 0.22, armF: 0.95, elbowF: 0.55, weap: 2.7, armB: 0.4, elbowB: 1.2, legF: 0.3, kneeF: 0.3, legB: -0.25, kneeB: 0.15, head: 0.15 },
+    style: {
+      helm: 'beak', eye: '#c8e89a', skin: '#2a211b', armor: '#1c1816', armorDark: '#141110', armorLight: '#2c2622',
+      body: '#1d1917', tabard: '#16120f', tabardLen: 34, leg: '#1a1614', legDark: '#121010', boot: '#0e0b0a', bootDark: '#0a0808',
+      hand: '#3a3028', limbW: 6.5, hipW: 9, shW: 10.5, belt: '#3a2c1c',
+    },
+    attacks: [
+      { id: 'cane', motion: 'thrust', windup: 0.55, active: 0.13, recover: 0.6, dmg: 18, poise: 20, reach: 94, yTop: -100, range: 84, lunge: 120 },
+      { id: 'censer', motion: 'over', windup: 0.62, active: 0.15, recover: 0.65, dmg: 22, poise: 26, reach: 84, yTop: -120, range: 74, lunge: 80 },
+    ],
+  },
+  brute: {
+    name: 'Sackhead Butcher', hp: 240, poise: 150, speed: 44, runSpeed: 72, aggro: 300, scale: 1.3, embers: 145,
+    weapon: 'maul', armor: true, coolMin: 1.1, coolMax: 2.0, bleedRes: 0.85,
+    idle: { lean: 0.2, armF: 0.4, elbowF: 0.4, weap: 0.6, armB: 0.2, elbowB: 0.5, legF: 0.4, kneeF: 0.35, legB: -0.35, kneeB: 0.2 },
+    style: {
+      helm: 'sack', skin: '#a08670', armor: '#a08670', armorDark: '#86705c', armorLight: '#b39a84',
+      body: '#5a4632', tabard: '#3d2a1c', tabardLen: 20, leg: '#3a2c20', legDark: '#2a2018', boot: '#1d1610', bootDark: '#15100c',
+      hand: '#a08670', limbW: 10, hipW: 14, shW: 15, belly: true, belt: '#1d140c', eye: '#000',
+    },
+    attacks: [
+      { id: 'pound', motion: 'over', windup: 0.95, active: 0.16, recover: 0.9, dmg: 36, poise: 55, reach: 82, yTop: -130, range: 72, lunge: 60, heavy: true, impact: true },
+      { id: 'uppercut', motion: 'rise', windup: 0.8, active: 0.16, recover: 0.8, dmg: 28, poise: 45, reach: 78, yTop: -150, range: 68, lunge: 70, heavy: true },
+    ],
+  },
+  templar: {
+    name: 'Templar of the Red Lantern', hp: 180, poise: 90, speed: 60, runSpeed: 105, aggro: 360, scale: 1.06, embers: 115,
+    weapon: 'mace', shield: true, blockChance: 0.65, coolMin: 0.7, coolMax: 1.4, bleedRes: 0.7,
+    idle: { lean: 0.08, armF: 0.8, elbowF: 0.9, weap: 2.1, armB: 1.2, elbowB: 0.5, legF: 0.35, kneeF: 0.35, legB: -0.3, kneeB: 0.15 },
+    style: {
+      helm: 'greathelm', helmCol: '#7a7d84', eye: '#ff3a1a', skin: '#8a8070', armor: '#6e7178', armorDark: '#4c4f55', armorLight: '#9a9da4',
+      body: '#5e6168', tabard: '#d8d0c0', tabardLen: 20, emblem: '#9a1010', leg: '#55585e', legDark: '#3c3e43', boot: '#222326', bootDark: '#18191b',
+      hand: '#3a3c40', limbW: 7.5, hipW: 9, shW: 11.5, pauldron: true, kneeCop: true, belt: '#2a1d14',
+      shield: '#d8d0c0', shieldRim: '#6e7178', emblemCol: '#9a1010', crossShield: true,
+    },
+    attacks: [
+      { id: 'smite', motion: 'over', windup: 0.55, active: 0.13, recover: 0.4, dmg: 26, poise: 30, reach: 74, yTop: -120, range: 66, lunge: 100, next: 'smite2' },
+      { id: 'smite2', motion: 'rise', windup: 0.25, active: 0.13, recover: 0.7, dmg: 22, poise: 26, reach: 72, yTop: -130, range: 0, lunge: 110, chained: true },
+      { id: 'bash', motion: 'thrust', windup: 0.42, active: 0.12, recover: 0.55, dmg: 15, poise: 30, reach: 62, yTop: -100, range: 56, lunge: 160 },
+    ],
+  },
+  crawler: {
+    name: 'Grave Crawler', hp: 45, poise: 20, speed: 30, runSpeed: 36, aggro: 260, scale: 0.92, embers: 18,
+    legless: true, coolMin: 0.8, coolMax: 1.6, bleedRes: 1.5,
+    idle: { lean: 0, armF: 2.6, elbowF: -0.4, armB: 2.6, elbowB: -0.4 },
+    style: {
+      helm: 'bare', skin: '#7d7a70', hair: '#1a1714', eye: '#ff2a1a', armor: '#7d7a70', armorDark: '#6a675e', armorLight: '#8f8b80',
+      body: '#4a4236', tabard: '#2d261c', tabardLen: 8, leg: '#3c3226', legDark: '#2d251c', boot: '#261d16', bootDark: '#1c1510',
+      hand: '#7d7a70', limbW: 5.5, hipW: 7, shW: 9, wounds: true,
+    },
+    attacks: [],
+  },
   headsman: {
     boss: true, name: 'Gaul, the Penitent Headsman', hp: 1050, poise: 230, speed: 62, runSpeed: 115, aggro: 2000, scale: 1.55, embers: 1500,
     weapon: 'greataxe', coolMin: 0.7, coolMax: 1.5, bleedRes: 0.8,
@@ -100,6 +155,11 @@ class Enemy {
     this.hasWeapon = true; this.hasShield = !!def.shield;
     this.walkPhase = rand(0, 6); this.flash = 0;
     this.phase2 = false; this.blocking = false; this.speedMul = 1;
+    if (def.legless) { // born of the grave: drags itself along on its arms
+      this.parts.legF = false; this.parts.legB = false; this.hasWeapon = false;
+      this.body = { ox: -44, oy: -6, rot: Math.PI / 2 };
+    }
+    if (!def.weapon) this.hasWeapon = false;
   }
 
   get crippled() { return !this.parts.legF || !this.parts.legB; }
@@ -136,7 +196,8 @@ class Enemy {
 
   // ------------------------------------------------------------------ AI
   update(dt, g) {
-    const p = g.player;
+    const p = g.enemyTarget(this);
+    this.target = p;
     if (this.flash > 0) this.flash -= dt;
     if (this.dead) { this.updateDead(dt, g); this.joints = solveRig(this.pose); return; }
     this.st += dt; this.sinceHit += dt;
@@ -426,7 +487,7 @@ class Enemy {
     this.posture += m.poise;
     if (this.state !== 'stagger' && this.state !== 'falling' && this.state !== 'roar') {
       if (this.posture >= this.maxPosture) this.stagger();
-      else if (!this.boss && this.state !== 'attack' && !(this.state === 'windup' && this.kind === 'footman' && m.heavy === false && chance(0.25))) {
+      else if (!this.boss && !this.def.armor && this.state !== 'attack' && !(this.state === 'windup' && this.kind === 'footman' && m.heavy === false && chance(0.25))) {
         this.state = 'hurt'; this.st = 0;
         this.vx = src.facing * (m.heavy ? 170 : 90);
       }

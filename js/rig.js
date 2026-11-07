@@ -144,6 +144,11 @@ function drawTorso(ctx, j, st, lean) {
       ctx.fillRect(ex - 0.7, ey - 5.5, 1.4, 3);
     }
   }
+  if (st.belly) { // a swollen gut pushing out of the apron
+    const cx = lerp(hip.x, sh.x, 0.35) + nx * 2 + 6, cy = lerp(hip.y, sh.y, 0.35);
+    ctx.fillStyle = st.skin; ctx.beginPath(); ctx.ellipse(cx, cy, st.hipW * 0.8, st.hipW * 1.0, lean, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(80,20,20,0.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx - 3, cy - 6); ctx.lineTo(cx + 2, cy + 4); ctx.stroke();
+  }
   if (st.belt) {
     const bx = lerp(hip.x, sh.x, 0.08), by = lerp(hip.y, sh.y, 0.08);
     ctx.strokeStyle = st.belt; ctx.lineWidth = 2.5;
@@ -236,6 +241,48 @@ function drawHead(ctx, c, ang, st, t) {
       ctx.lineTo(1, -4); ctx.quadraticCurveTo(-3, 2, -2, r + 3); ctx.closePath(); ctx.fill();
       break;
     }
+    case 'man': { // an uncorrupted survivor
+      dot(ctx, { x: 0, y: 0 }, r * 0.95, st.skin);
+      ctx.fillStyle = st.hair; ctx.beginPath(); ctx.arc(-1, -1.5, r * 0.98, Math.PI * 0.9, Math.PI * 1.9); ctx.fill();
+      if (st.beard) { ctx.fillStyle = st.beard; ctx.beginPath(); ctx.moveTo(-2, 2); ctx.quadraticCurveTo(2, 11, 8, 4); ctx.lineTo(8, 1); ctx.lineTo(2, 3); ctx.closePath(); ctx.fill(); }
+      dot(ctx, { x: 4.6, y: -1.5 }, 1.1, '#1a1210');
+      ctx.strokeStyle = st.hair; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(3, -4); ctx.lineTo(6.5, -4.4); ctx.stroke();
+      if (st.scar) { ctx.strokeStyle = '#8a4a40'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(2, -6); ctx.lineTo(5.5, 2); ctx.stroke(); }
+      if (st.helmCol) { ctx.fillStyle = st.helmCol; ctx.beginPath(); ctx.ellipse(0, -2, r * 0.98, r * 0.9, 0, Math.PI, 0); ctx.fill(); ctx.fillRect(4, -3, 1.5, 7); }
+      break;
+    }
+    case 'beak': { // plague doctor: brimmed hat, leather mask, long beak, glass eyes
+      ctx.fillStyle = '#2a211b'; ctx.beginPath(); ctx.arc(0, 0, r * 0.95, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#3a2e25';
+      ctx.beginPath(); ctx.moveTo(3, -2); ctx.quadraticCurveTo(14, -1, 22, 9); ctx.quadraticCurveTo(13, 5, 3, 5); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#1a1410'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(6, 1); ctx.quadraticCurveTo(13, 2.5, 20, 8); ctx.stroke();
+      dot(ctx, { x: 4.5, y: -2.5 }, 2.6, '#6b6a50');
+      dot(ctx, { x: 4.8, y: -2.6 }, 1.7, st.eye);
+      ctx.fillStyle = '#0c0a09';
+      ctx.beginPath(); ctx.ellipse(0, -r + 1, r * 1.9, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(-r * 0.85, -r - 9, r * 1.7, 10);
+      ctx.fillStyle = '#4a1010'; ctx.fillRect(-r * 0.85, -r - 1.5, r * 1.7, 1.6);
+      break;
+    }
+    case 'sack': { // brute: stitched burlap sack, rope at the neck
+      ctx.fillStyle = '#6b5a40'; ctx.beginPath(); ctx.ellipse(0, -1, r * 1.05, r * 1.15, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#4a3c2a'; ctx.lineWidth = 0.7;
+      for (let i = -6; i <= 6; i += 3) { ctx.beginPath(); ctx.moveTo(i, -r); ctx.lineTo(i + 1, r); ctx.stroke(); }
+      ctx.strokeStyle = '#1a0c08'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(2.5, -4); ctx.lineTo(6.5, -0.5); ctx.moveTo(6.5, -4); ctx.lineTo(2.5, -0.5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(2, 4); for (let i = 0; i < 4; i++) { ctx.lineTo(3 + i * 1.6, 4 + (i % 2 ? 1.5 : -1)); } ctx.stroke();
+      ctx.fillStyle = 'rgba(110,8,8,0.7)'; ctx.beginPath(); ctx.ellipse(-2, 3, 4, 5, 0.4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#3a2c1c'; ctx.fillRect(-r, r - 1, r * 2, 3);
+      break;
+    }
+    case 'greathelm': { // templar: flat-topped great helm with a cross visor
+      ctx.fillStyle = st.helmCol || '#7a7d84'; rr(ctx, -r - 0.5, -r - 3, r * 2 + 1, r * 2 + 6, 1.5); ctx.fill();
+      ctx.fillStyle = st.armorLight; ctx.fillRect(-r - 0.5, -r - 3, r * 2 + 1, 2.4);
+      ctx.fillStyle = '#060606'; ctx.fillRect(1, -3, r, 2.2); ctx.fillRect(4.5, -3, 2, 9);
+      dot(ctx, { x: 6, y: -2 }, 0.9, st.eye);
+      ctx.fillStyle = '#8a1010'; ctx.fillRect(-4, -r - 2, 2, 6);
+      break;
+    }
     case 'kerchief': {
       dot(ctx, { x: 0, y: 0 }, r * 0.88, st.skin);
       dot(ctx, { x: 4, y: -1 }, 1, '#1a1010');
@@ -253,6 +300,7 @@ function drawShield(ctx, hand, st) {
   ctx.fillStyle = st.shieldRim; ctx.beginPath(); ctx.ellipse(0, 0, 7.5, 19, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = st.shield; ctx.beginPath(); ctx.ellipse(0.5, 0, 6, 17, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = st.emblemCol || '#6e6040'; ctx.fillRect(-1, -9, 3, 18);
+  if (st.crossShield) ctx.fillRect(-4.5, -4, 10, 3);
   dot(ctx, { x: 1, y: 0 }, 2.5, st.shieldRim);
   ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(-4, -6); ctx.lineTo(3, -12); ctx.moveTo(-3, 8); ctx.lineTo(4, 12); ctx.stroke();
@@ -296,6 +344,35 @@ function drawWeaponShape(ctx, type, blood) {
       ctx.beginPath(); ctx.moveTo(14, 50); ctx.lineTo(26, 52); ctx.lineTo(27, 74); ctx.lineTo(16, 66); ctx.closePath(); ctx.fill();
       ctx.globalAlpha = 1;
       ctx.fillStyle = '#3a3330'; ctx.fillRect(-3, 44, 6, 28);
+      break;
+    case 'spear':
+      ctx.fillStyle = '#4a3622'; ctx.fillRect(-1.2, -34, 2.4, 82);
+      ctx.fillStyle = '#9a968c'; ctx.beginPath(); ctx.moveTo(-2.8, 46); ctx.lineTo(0, 62); ctx.lineTo(2.8, 46); ctx.lineTo(0, 43); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#6b1010'; ctx.fillRect(-1.8, 40, 3.6, 3);
+      break;
+    case 'falchion':
+      ctx.fillStyle = '#2a1f17'; ctx.fillRect(-1.6, -9, 3.2, 10);
+      ctx.fillStyle = '#6a645a'; ctx.fillRect(-6, 1, 12, 2.4);
+      ctx.fillStyle = '#a6a196';
+      ctx.beginPath(); ctx.moveTo(-2.2, 3); ctx.lineTo(2.2, 3); ctx.lineTo(5, 34); ctx.quadraticCurveTo(2, 42, -2.5, 40); ctx.closePath(); ctx.fill();
+      break;
+    case 'staff': // plague doctor's hooked cane with a swinging censer
+      ctx.fillStyle = '#2a1d14'; ctx.fillRect(-1.2, -30, 2.4, 66);
+      ctx.strokeStyle = '#2a1d14'; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.arc(-4, 36, 4, 0, Math.PI); ctx.stroke();
+      ctx.fillStyle = '#5a5240'; ctx.beginPath(); ctx.arc(-8, 44, 3.4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(160,190,120,0.5)'; ctx.beginPath(); ctx.arc(-8, 47, 2.6, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 'maul':
+      ctx.fillStyle = '#3a2816'; ctx.fillRect(-2, -16, 4, 66);
+      ctx.fillStyle = '#4a3a2a'; rr(ctx, -11, 46, 22, 18, 3); ctx.fill();
+      ctx.fillStyle = '#5a5048'; ctx.fillRect(-11, 49, 22, 3); ctx.fillRect(-11, 58, 22, 3);
+      ctx.fillStyle = 'rgba(100,6,6,0.75)'; ctx.fillRect(-11, 52, 10, 12);
+      break;
+    case 'mace':
+      ctx.fillStyle = '#2a2220'; ctx.fillRect(-1.6, -8, 3.2, 40);
+      ctx.fillStyle = '#6e6a66'; ctx.beginPath(); ctx.arc(0, 34, 5.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#8a8680';
+      for (let a = 0; a < 6; a++) { const an = a * Math.PI / 3; ctx.beginPath(); ctx.moveTo(Math.cos(an) * 4, 34 + Math.sin(an) * 4); ctx.lineTo(Math.cos(an + 0.3) * 9, 34 + Math.sin(an + 0.3) * 9); ctx.lineTo(Math.cos(an + 0.6) * 4, 34 + Math.sin(an + 0.6) * 4); ctx.fill(); }
       break;
     case 'shovel':
       ctx.fillStyle = '#4a3a28'; ctx.fillRect(-1.2, -20, 2.4, 52);

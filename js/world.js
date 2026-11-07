@@ -30,33 +30,47 @@ const LEVEL = {
   ],
   enemies: [
     { type: 'peasant', x: 1080, idle: 'feed', facing: 1 },
+    { type: 'crawler', x: 1260, facing: -1 },
     { type: 'peasant', x: 1520, facing: -1 },
     { type: 'peasant', x: 1960, idle: 'feed', facing: -1 },
     { type: 'peasant', x: 2060, idle: 'pray', facing: -1 },
     { type: 'footman', x: 2480, facing: -1 },
     { type: 'peasant', x: 2760, facing: -1 },
     { type: 'peasant', x: 2850, idle: 'feed', facing: 1 },
+    { type: 'crawler', x: 2960, facing: -1 },
     { type: 'flagellant', x: 3160, facing: -1 },
+    { type: 'crawler', x: 4250, facing: -1 },
     { type: 'footman', x: 4360, facing: -1 },
-    { type: 'peasant', x: 4520, idle: 'pray', facing: 1 },
-    { type: 'peasant', x: 4590, idle: 'pray', facing: 1 },
-    { type: 'flagellant', x: 5000, facing: -1 },
-    { type: 'flagellant', x: 5160, facing: -1 },
+    { type: 'peasant', x: 4520, idle: 'pray', facing: -1 },
+    { type: 'peasant', x: 4590, idle: 'pray', facing: -1 },
+    { type: 'flagellant', x: 5060, facing: -1 },
+    { type: 'flagellant', x: 5200, facing: -1 },
     { type: 'footman', x: 5520, facing: -1 },
     { type: 'footman', x: 5650, facing: -1 },
     { type: 'peasant', x: 5920, idle: 'feed', facing: -1 },
     { type: 'peasant', x: 5990, idle: 'feed', facing: 1 },
     { type: 'peasant', x: 6060, facing: -1 },
+    { type: 'brute', x: 6150, facing: -1 },
+    { type: 'plaguedoc', x: 6300, facing: -1 },
     { type: 'flagellant', x: 6440, facing: -1 },
     { type: 'footman', x: 6620, facing: -1 },
     { type: 'footman', x: 7360, facing: -1 },
-    { type: 'flagellant', x: 7520, idle: 'pray', facing: -1 },
-    { type: 'footman', x: 7720, facing: -1 },
-    { type: 'flagellant', x: 7880, facing: -1 },
+    { type: 'plaguedoc', x: 7470, facing: -1 },
+    { type: 'flagellant', x: 7560, idle: 'pray', facing: -1 },
+    { type: 'templar', x: 7720, facing: -1 },
+    { type: 'brute', x: 7920, facing: -1 },
+    { type: 'templar', x: 8120, facing: -1 },
   ],
   npcs: [
     { id: 'osric', x: 640 },
     { id: 'wren', x: 3930 },
+  ],
+  // survivors who can be attacked: fighters defend themselves, civilians cannot
+  allies: [
+    { id: 'bram', x: 2350 },
+    { id: 'hedda', x: 4810 },
+    { id: 'odo', x: 5420 },
+    { id: 'anselm', x: 7240 },
   ],
   notes: [
     { id: 'letter', x: 1720 },
@@ -93,7 +107,7 @@ const LEVEL = {
   add('house', 3480, { w: 210, burning: false }); add('well', 3640);
   add('grave', 3850); add('grave', 3890, { cross: true }); add('grave', 3990); add('grave', 4040, { cross: true }); add('grave', 4085);
   add('house', 4180, { w: 240, burning: true }); add('cage', 4460); add('corpse', 4550, { style: 'footman', rot: 1 });
-  add('pike', 4700); add('house', 4880, { w: 220, burning: true }); add('banner', 5060);
+  add('pike', 4700); add('house', 4880, { w: 220, burning: true }); add('barricade', 4860); add('banner', 5060);
   add('corpse', 5260, { style: 'peasant', rot: -1 }); add('house', 5380, { w: 260, burning: false });
   add('pike', 5480); add('pike', 5520); add('house', 5760, { w: 230, burning: true });
   add('corpse', 5960, { style: 'peasant', rot: 1 }); add('cage', 6150); add('house', 6300, { w: 250, burning: true });
@@ -364,6 +378,14 @@ function drawProp(ctx, p, t, game) {
       ctx.fillRect(x - 14, y - h + 26, 28, 26);
       break;
     }
+    case 'barricade':
+      ctx.fillStyle = '#2a1d13';
+      ctx.save(); ctx.translate(x, y);
+      for (const [dx, a, len] of [[-30, -0.5, 70], [-5, 0.45, 74], [18, -0.35, 60]]) { ctx.save(); ctx.translate(dx, -4); ctx.rotate(a); ctx.fillRect(-len / 2, -4, len, 8); ctx.restore(); }
+      ctx.fillStyle = '#3a2a1c'; ctx.fillRect(-36, -34, 70, 9); ctx.fillRect(-28, -22, 60, 7);
+      ctx.fillStyle = '#5a4a3a'; ctx.fillRect(-14, -46, 4, 46); ctx.fillRect(12, -40, 4, 40);
+      ctx.restore();
+      break;
     case 'well':
       ctx.fillStyle = '#2a2624'; ctx.fillRect(x - 32, y - 34, 64, 34);
       ctx.fillStyle = '#383330'; for (let i = 0; i < 4; i++) ctx.fillRect(x - 32 + i * 16 + 1, y - 34, 14, 7);
