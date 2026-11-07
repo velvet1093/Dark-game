@@ -179,9 +179,9 @@ const Game = {
   joinLumi() {
     const lumi = this.fairies.find(f => f.id === 'lumi');
     this.flags.lumi = true;
-    if (lumi) { lumi.mode = 'follow'; lumi.home = null; lumi.say('Lead on, Sir Knight! I\'ll keep watch.', 3.5, true); }
+    if (lumi) { lumi.mode = 'follow'; lumi.home = null; lumi.say('Lead on, Sir Knight! I can\'t wait to see how it ends.', 3.5, true); }
     Sfx.play('fairyJoin');
-    this.toast('Lumi the fairy now travels with you.', 4);
+    this.toast('Lumi follows you now. She wants to be there when you die.', 4);
   },
 
   updateFairies(dt) { for (const f of this.fairies) f.update(dt, this); },
@@ -635,7 +635,7 @@ const Game = {
     if (!s || s.status === 'active') Quests.fail(a.def.quest, `${a.name} was slain`);
     this.toast(`${a.name} has been slain.`, 4);
     const lumi = this.fairies.find(f => f.mode === 'follow');
-    if (lumi) lumi.say(pick(['No... we were too late.', `${a.name}... no. Please, let's go.`]), 4);
+    if (lumi) { lumi.say(pick(['Oh! Did you see that? Did you SEE that?', `${a.name} made such a sound.`, 'We were too late. What a pity. Again?']), 4); Sfx.play('giggle'); }
     this.saveGame();
   },
 

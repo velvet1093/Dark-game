@@ -159,6 +159,8 @@ const ALLY_TALK = {
       { who: 'Mother Agathe', text: 'We keep her rite. We cannot cure the Weeping, not truly. But we can draw it out of you, again and again, for as long as you keep coming back to us.' },
       { who: 'Mother Agathe', text: 'The sickness pours from the cathedral, from the Heart of Saint Varn. Bishop Malachar opened something that should have stayed sealed, and all of Vael is bleeding from that wound.' },
       { who: 'Mother Agathe', text: 'Sister Elowen will purify you whenever you need it. Sister Maelis brews tonics to hold the Weeping back on the road.' },
+      { who: 'Mother Agathe', text: 'And child... the little light at your shoulder. We call them death-watchers. They follow the doomed. Whatever it tells you, it is not your friend.' },
+      { who: 'Lumi', text: 'She\'s just jealous. Nobody watches HER.' },
       { who: 'Mother Agathe', text: 'And if you cross the Mire, look for Sister Ysane. She went to the Drowned Chapel to tend the dying a week ago. She has not come back.' },
     ],
     after: [{ who: 'Mother Agathe', text: 'Ysolde walks with those who bleed for others. Remember that, child.' }],

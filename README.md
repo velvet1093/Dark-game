@@ -124,14 +124,19 @@ Lumi mourns them. Brother Osric and Wren are in safe places and can't be attacke
 | Weeping Sister | A Sister of Saint Ysolde who turned; fast twin-knife flurries and a lunge |
 | Gaul, the Penitent Headsman | The boss |
 
-## Fairy guides
+## The death-watchers
 
-Each NPC is kept company by a tiny lavender fairy with long white hair, four dragonfly
-wings, a frilled headband and a long lavender dress. **Pip** stays with Wren the gravedigger.
-**Lumi** waves you over to Brother Osric, then joins you after his story. She follows at your
-shoulder and calls out advice: rest at a new shrine, finish a staggering foe, drink a vial when
-you're bleeding out, break a shield with a heavy attack, recover your dropped embers. She won't
-follow you through the boss's fog wall and waits for you outside it.
+The little lantern fairies are not guides. The Sisters call them **death-watchers**: they
+gather where blood will be spilt and follow doomed souls, chattering kindly, because a long
+death is sweeter to them than a quick one.
+
+**Pip** keeps Wren company while she digs graves. **Lumi** waits with the dying monk on the
+road, then attaches herself to Sir Aldric because a knight will be more interesting to watch
+die. Her "advice" is real (rest at shrines, finish staggering foes, drink a vial, get the
+Weeping purged) but always for her own reasons: she wants the end to be worth watching.
+She drifts in close when you're badly hurt, circles your body giggling when you fall, and
+mourns nobody. Brother Osric and Mother Agathe both warn you about her, and a note in the
+chapel describes what she is. She will not cross the boss's fog wall; she waits outside to listen.
 
 ## Music & sound
 

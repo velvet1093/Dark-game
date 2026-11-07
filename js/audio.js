@@ -213,6 +213,9 @@ const Sfx = {
     fairyJoin() {
       [1047, 1319, 1568, 2093, 2637].forEach((f, i) => this.tone({ freq: f, dur: 0.9, type: 'sine', vol: 0.07, delay: i * 0.09, attack: 0.02 }));
     },
+    giggle() { // a small, delighted laugh
+      [2350, 2100, 2450, 2000, 2300].forEach((f, i) => this.tone({ freq: f, freqTo: f * 0.85, dur: 0.09, type: 'sine', vol: 0.05, delay: i * 0.08 }));
+    },
     heartbeat() {
       this.tone({ freq: 55, freqTo: 40, dur: 0.16, type: 'sine', vol: 0.5 });
       this.tone({ freq: 50, freqTo: 36, dur: 0.18, type: 'sine', vol: 0.35, delay: 0.18 });

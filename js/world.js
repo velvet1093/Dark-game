@@ -129,6 +129,7 @@ const LEVEL = {
     { id: 'letter', x: 1720 },
     { id: 'notice', x: 3660 },
     { id: 'ysolde', x: 5800 },
+    { id: 'deathwatch', x: 5730 },
     { id: 'order', x: 7720 },
     { id: 'hymn', x: 9230 },
     { id: 'journal', x: 10420 },

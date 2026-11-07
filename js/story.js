@@ -28,9 +28,10 @@ const STORY = {
     { who: 'Brother Osric', text: 'You are wounded. If it was one of them, the Weeping is in you now. Go east to Brackenford. The Sisters of Saint Ysolde can draw it out.' },
     { who: 'Brother Osric', text: 'Take this. Holy water, blessed before the blessing curdled. Drink, and your wounds will close... for a time.' },
     { who: '', text: 'Received: Vial of Saint\'s Tears. Your vials increase by one.', reward: 'flask' },
-    { who: 'Lumi', text: 'Hello! I\'m Lumi. Brother Osric found me asleep inside a lantern shrine. He says I talk too much.' },
-    { who: 'Brother Osric', text: 'She does. Take her with you, knight. She knows these roads, and she sees what the dead try to hide.' },
-    { who: 'Lumi', text: 'I\'ll ride on your shoulder and keep watch. If you start dying, I\'ll yell. Loudly.' },
+    { who: 'Lumi', text: 'Hello! I\'m Lumi. I\'ve been sitting with the brother all night. He\'s taking such a long time.' },
+    { who: 'Brother Osric', text: 'Do not trust it, knight. It has followed every dying soul on this road. It does not help. It watches.' },
+    { who: 'Lumi', text: 'Rude. I help! I just like to be there at the end. Everyone deserves an audience.' },
+    { who: 'Lumi', text: 'Oh, you\'re much more interesting than him. A knight! I\'ll come along. I promise I\'ll be there when it happens.' },
     { who: 'Brother Osric', text: 'Hallowmere lies east, past Brackenford. And Gaul keeps the cathedral steps now... You knew him, didn\'t you?' },
   ],
   osricRepeat: [
@@ -44,8 +45,8 @@ const STORY = {
     { who: 'Wren', text: 'The garrison turned first. Captain\'s orders, they said. Then the flagellants came down from the hills, whipping themselves red, singing for the Bishop.' },
     { who: 'Wren', text: 'The Headsman guards the cathedral now. Gaul. He used to give us apples at harvest. Now he gives everyone the axe.' },
     { who: 'Wren', text: 'If you\'re going up there... cut deep. They don\'t feel pain any more. But they still bleed out.' },
-    { who: 'Pip', text: 'Wren\'s too proud to say it, but she\'s glad you came. I\'m Pip. I keep the crows off the graves.' },
-    { who: 'Wren', text: 'Pip! ...Fine. Yes. I\'m glad. Pip says the lantern fairies have been watching over you since the river.' },
+    { who: 'Pip', text: 'I\'m Pip. I keep Wren company while she digs. So many graves. I like to watch them fill.' },
+    { who: 'Wren', text: 'Don\'t mind Pip. She says the lantern fairies have been watching you since the river. I don\'t think that\'s a kindness, sir.' },
     { who: '', text: 'Wren presses a pouch of tarnished grave-coins into your palm. (+200 Embers)', reward: 'embers' },
   ],
   wrenRepeat: [
@@ -71,6 +72,10 @@ const STORY = {
   ],
 
   notes: {
+    deathwatch: {
+      title: 'On the Death-Watchers',
+      text: 'From the infirmary book of the Sisters of Saint Ysolde:\n\nThe little lights the peasants call lantern fairies are not spirits of mercy. They gather where blood will be spilt, as crows gather before a battle.\n\nThey are drawn to the dying and will follow a doomed soul for many days, chattering kindly, offering counsel, even keeping it alive a while longer. A long death is sweeter to them than a quick one.\n\nThey cannot be harmed, and they cannot be sent away. Pray only that yours grows bored.',
+    },
     notice: {
       title: 'Notice of Quarantine',
       text: 'BY ORDER OF THE REEVE OF BRACKENFORD\n\nThe gates shall admit no person who weeps red, who bears an unclean bite, or who will not show their eyes to the Watch.\n\nThose wounded beyond the walls shall present themselves to the Sisters of Saint Ysolde without delay.\n\nThose who TURN within the walls shall be put down by the Watch, and their families shall not hold it against us.\n\n— Aldous, Reeve',

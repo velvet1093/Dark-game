@@ -52,6 +52,17 @@ class Fairy {
       const danger = g.enemies.some(e => !e.dead && Math.abs(e.x - p.x) < 200 && e.state !== 'dormant' && e.state !== 'idle');
       tx = p.x - p.facing * (danger ? 60 : 34) + Math.sin(this.t * 1.1) * 8;
       ty = GROUND - (danger ? 158 : 112) + Math.sin(this.t * 2.2) * 7;
+      if (p.hp < p.maxHp * 0.3 && !p.dead) { // drifts in close to watch
+        tx = p.x + p.facing * 22 + Math.sin(this.t * 2) * 4; ty = GROUND - 120 + Math.sin(this.t * 3) * 3;
+      }
+      if (p.dead) { // circles the body, delighted
+        tx = p.x + Math.cos(this.t * 2.4) * 34; ty = GROUND - 50 + Math.sin(this.t * 4.8) * 12;
+        if (!this.sawDeath) {
+          this.sawDeath = true; Sfx.play('giggle');
+          this.say(pick(Game.turned ? ['You turned! You actually turned! Oh, your face!', 'So that\'s what it looks like from the inside.'] :
+            ['Oh! Oh, that was a good one.', 'There it is. There it is!', 'Again! Do it again!', 'I knew you would. I just knew it.']), 3.5, true);
+        }
+      } else this.sawDeath = false;
       if (g.bossActive) { tx = LEVEL.bossGate - 46 + Math.sin(this.t) * 10; ty = GROUND - 120 + Math.sin(this.t * 2) * 8; }
     }
     // springy flight
@@ -66,8 +77,8 @@ class Fairy {
   }
 
   greeting() {
-    if (this.id === 'lumi') return 'Sir Knight! Over here! Brother Osric is hurt. Please, talk to him!';
-    return 'Careful, she bites. ...Wren, I mean. Not me.';
+    if (this.id === 'lumi') return 'Sir Knight! Over here! The old monk is dying. Come and watch with me!';
+    return 'Careful, she bites. Wren, I mean. I only watch.';
   }
 
   // Chibi fairy, drawn with soft cel shading and a violet outline so she reads at a glance.
@@ -262,22 +273,24 @@ class Fairy {
 }
 
 // Lumi's advice once she travels with the knight. Each fires once (or on a cooldown).
+// Lumi's "advice". She wants him alive only until the death is worth watching.
 const FAIRY_HINTS = {
-  shrine: () => 'A lantern shrine! Rest there. It will remember you when you fall.',
-  exec: () => Mobile.enabled ? "It's staggering! Tap the red skull to finish it!" : "It's staggering! Press F to finish it!",
-  lowhp: () => Mobile.enabled ? "You're bleeding everywhere! Drink a vial, the little jar button!" : "You're bleeding everywhere! Drink a vial! (Q)",
-  novial: () => 'No vials left... Get back to a shrine, please!',
-  note: () => "Something's written there. Read it?",
-  zone_town: () => 'Brackenford! Real people, with real hearths. The Sisters\' chapel is at the far end of town.',
-  zone_village: () => 'Hallowmere... it was so pretty once. Mind the fires.',
-  zone_mire: () => 'The Mire. Even the air feels sick. Don\'t let them bite you, and stay away from the fat ones when they fall.',
-  zone_cathedral: () => 'The cathedral. I can feel the Heart beating from here. Every beat makes more of them.',
-  infect: () => 'That red under your skin... it\'s spreading. The Sisters can draw it out. Please don\'t wait too long.',
-  turning: () => 'No, no, no, it\'s taking you! Drink a tonic or get to a Sister, NOW!',
-  gate: () => "That fog... he's behind it. I can't follow you in there. Come back to me, alright?",
-  respawn: () => 'Up you get! Your embers are still glowing where you fell.',
-  bossdead: () => 'You did it! ...Oh, Gaul. Rest now.',
-  shield: () => 'That one hides behind a shield. A heavy blow will break his guard!',
-  help: () => "Someone's being attacked! Hurry, Sir Knight!",
-  cripple: () => 'Ooh, he lost a leg. Now he can only crawl. Finish him!',
+  shrine: () => 'A lantern shrine. Rest if you like. It means I get to watch you die again later.',
+  exec: () => Mobile.enabled ? "It's staggering! Tap the skull. I want to see what's inside." : "It's staggering! Press F. I want to see what's inside.",
+  lowhp: () => Mobile.enabled ? "So much red... Not yet, though. Drink your little jar. It's too early to end." : "So much red... Not yet, though. Drink a vial (Q). It's too early to end.",
+  novial: () => 'No vials left? Oh. Oh, this is going to be good.',
+  note: () => "Someone wrote something before they died. Read it. Last words are my favourite.",
+  zone_town: () => 'Brackenford. So many people, all huddled together. When the Weeping gets in, it will be wonderful.',
+  zone_village: () => 'Hallowmere! I watched it burn. The screaming went on for days.',
+  zone_mire: () => 'The Mire. Things drown here slowly. Stay near the fat ones when they burst, it\'s pretty.',
+  zone_cathedral: () => 'Can you hear the Heart? Every beat is someone dying. It sounds like a lullaby.',
+  infect: () => 'Your veins are going red. Go and let the Sisters scrub it out... I\'d rather you die as yourself. It\'s more tragic.',
+  turning: () => "You're turning! I've never watched a knight turn before. Drink something or don't. Either way, I'm watching!",
+  gate: () => "He's behind the fog. I'll wait out here and listen. Scream loudly, please.",
+  respawn: () => 'You died! Again! Get up, get up, I want to watch that part again. Your embers are where you fell.',
+  bossdead: () => 'Oh, that was beautiful. Did you see his face at the end? I\'ll remember that one.',
+  shield: () => 'That one hides behind his shield. Hit it hard. I want to hear it crack.',
+  help: () => "Someone's being torn apart over there! Hurry, or we'll miss it!",
+  cripple: () => 'He lost a leg! Look at him crawl. Don\'t finish him too quickly.',
 };
+
