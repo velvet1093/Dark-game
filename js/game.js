@@ -130,7 +130,10 @@ const Game = {
     const p = this.player;
     p.stats = Object.assign({ vig: 1, end: 1, str: 1 }, s.stats); p.level = s.level || 1;
     p.embers = s.embers || 0; p.maxFlasks = s.maxFlasks || 3;
-    p.weaponLevel = s.weaponLevel || 0; p.infection = s.infection || 0; p.turning = !!s.turning; p.turnT = s.turnT || 90;
+    p.owned = (s.owned || ['longsword']).filter(id => WEAPONS[id]); if (!p.owned.length) p.owned = ['longsword'];
+    p.weaponLevels = s.weaponLevels || { longsword: s.weaponLevel || 0 };
+    p.weaponId = p.owned.includes(s.weaponId) ? s.weaponId : 'longsword';
+    p.infection = s.infection || 0; p.turning = !!s.turning; p.turnT = s.turnT || 90;
     p.tonics = s.tonics !== undefined ? s.tonics : 1; p.maxTonics = s.maxTonics || 3;
     this.flags = Object.assign({ notes: {} }, s.flags || {});
     Quests.ensure(this.flags);
@@ -147,7 +150,7 @@ const Game = {
     this.save = {
       v: 1, shrine: this.shrine, kindled: [...this.kindled], stats: p.stats, level: p.level,
       embers: p.embers, maxFlasks: p.maxFlasks, flags: this.flags, stain: this.stain,
-      weaponLevel: p.weaponLevel, infection: p.infection, turning: p.turning, turnT: p.turnT, tonics: p.tonics, maxTonics: p.maxTonics,
+      owned: p.owned, weaponId: p.weaponId, weaponLevels: p.weaponLevels, infection: p.infection, turning: p.turning, turnT: p.turnT, tonics: p.tonics, maxTonics: p.maxTonics,
     };
     store.set(SAVE_KEY, this.save);
   },
@@ -377,8 +380,20 @@ const Game = {
   },
 
   // ------------------------------------------------------------ interaction
+  // a weapon found in the world, a quest reward, or bought
+  giveWeapon(id) {
+    const p = this.player;
+    if (!p.giveWeapon(id)) return;
+    this.flags['took_' + id] = true;
+    this.showBanner('WEAPON ACQUIRED', WEAPONS[id].name + ' · ' + WEAPONS[id].kind, '#d8c08a', 3.5);
+    this.toast(Mobile.enabled ? 'Tap ⇄ to switch weapons.' : 'Press X to switch weapons.', 4);
+    Sfx.play('anvil');
+    this.saveGame();
+  },
+
   nearestInteract() {
     const p = this.player;
+    for (const w of LEVEL.weaponPickups) if (!p.owned.includes(w.id) && !this.flags['took_' + w.id] && Math.abs(p.x - w.x) < 44) return { kind: 'weapon', obj: w, x: w.x, y: GROUND - 110, label: 'Take ' + WEAPONS[w.id].name };
     for (const s of LEVEL.shrines) if (Math.abs(p.x - s.x) < 46) return { kind: 'shrine', obj: s, x: s.x, y: GROUND - 132, label: this.kindled.has(s.id) ? 'Rest' : 'Kindle the lantern' };
     for (const a of this.allies) if (Math.abs(p.x - a.x) < 60) return { kind: 'ally', obj: a, x: a.x, y: GROUND - 140, label: a.dead ? 'Examine' : 'Speak' };
     for (const n of LEVEL.npcs) if (Math.abs(p.x - n.x) < 70) return { kind: 'npc', obj: n, x: n.x, y: GROUND - 120, label: 'Speak' };
@@ -407,6 +422,8 @@ const Game = {
       this.flags.notes[it.obj.id] = true;
       Quests.onNote(it.obj.id);
       this.state = 'note'; Sfx.play('page'); Input.clear();
+    } else if (it.kind === 'weapon') {
+      this.giveWeapon(it.obj.id);
     } else if (it.kind === 'door') {
       Sfx.play('door'); Sfx.play('bell');
       Music.play('requiem');
@@ -742,11 +759,14 @@ const Game = {
     if (k === 'smith') {
       const lvl = p.weaponLevel, cost = Math.round(250 * Math.pow(lvl + 1, 1.6));
       return {
-        title: 'Garrick\'s Forge', sub: 'Each honing adds a tenth to every blow of ' + p.weapon.name + '.',
+        title: 'Garrick\'s Forge', sub: 'Each honing adds a tenth to every blow of the weapon in your hand: ' + p.weapon.name + '. Switch weapons (X) to hone another.',
         opts: [
           { label: lvl >= 5 ? `${p.weapon.name} is honed to perfection` : `Hone ${p.weapon.name} to +${lvl + 1}`, value: lvl >= 5 ? '' : `${cost} embers`, disabled: lvl >= 5 || p.embers < cost, fn: () => {
             p.embers -= cost; p.weaponLevel++; p.recalc(); Sfx.play('anvil'); this.toast(`${p.weapon.name} +${p.weaponLevel}`, 2); this.saveGame();
           } },
+          ...(p.owned.includes('spear') ? [] : [{ label: 'Buy a Watchman\'s Pike', value: '600 embers', disabled: p.embers < 600, fn: () => {
+            p.embers -= 600; this.giveWeapon('spear'); Sfx.play('coin');
+          } }]),
           { label: 'Leave' },
         ],
       };
@@ -848,7 +868,7 @@ const Game = {
       if (!e.dead) e.z = lift * 12;
     } else {
       const start = x.type === 'impale' ? ex.ripT : ex.strikeT + 0.45;
-      p.pose = lerpPose(ex.strikeP, basePose(PLAYER_IDLE), easeInOut(clamp((t - start) / 0.5, 0, 1)));
+      p.pose = lerpPose(ex.strikeP, basePose(p.idle), easeInOut(clamp((t - start) / 0.5, 0, 1)));
     }
     p.joints = solveRig(p.pose);
     if (!x.struck && t >= ex.strikeT - 0.03) { x.struck = true; this.execStrike(); }
@@ -951,6 +971,17 @@ const Game = {
     for (const pr of LEVEL.props) if (pr.x > l - 300 && pr.x < r + 300) drawProp(ctx, pr, t, this);
     for (const s of LEVEL.shrines) if (s.x > l - 200 && s.x < r + 200) drawShrine(ctx, s, t, this.kindled.has(s.id), this.interactTarget && this.interactTarget.obj === s);
     for (const n of this.allNotes()) if (n.x > l && n.x < r) drawNote(ctx, n, t, this.flags.notes[n.id]);
+    for (const w of LEVEL.weaponPickups) { // weapons waiting to be claimed, blade-down in the earth
+      if (p.owned.includes(w.id) || this.flags['took_' + w.id] || w.x < l - 80 || w.x > r + 80) continue;
+      const wd = WEAPONS[w.id], gy = GROUND - wd.bladeLen * 0.62;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      const gl = ctx.createRadialGradient(w.x, GROUND - 30, 2, w.x, GROUND - 30, 60);
+      gl.addColorStop(0, `rgba(255,220,150,${0.22 + Math.sin(t * 3) * 0.08})`); gl.addColorStop(1, 'rgba(255,220,150,0)');
+      ctx.fillStyle = gl; ctx.fillRect(w.x - 60, GROUND - 90, 120, 120); ctx.restore();
+      drawWeaponAt(ctx, { x: w.x, y: gy }, 0.12, c => wd.draw(c, 0.3));
+      if (wd.draw2) drawWeaponAt(ctx, { x: w.x + 10, y: gy + 4 }, -0.2, c => wd.draw2(c, 0.3));
+      if (chance(0.06)) FX.ember(w.x + rand(-8, 8), GROUND - 10);
+    }
     for (const n of LEVEL.npcs) if (n.x > l - 100 && n.x < r + 100) drawNPC(ctx, n, t, this);
     // lost embers
     if (this.stain && this.stain.x > l && this.stain.x < r) {

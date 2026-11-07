@@ -147,6 +147,11 @@ const LEVEL = {
     { x: 3480, text: 'Brackenford: the infected cannot pass its walls. Rest, trade, and find the Sisters at the chapel.' },
   ],
   props: [],
+  // weapons lying in the world, waiting to be claimed
+  weaponPickups: [
+    { id: 'daggers', x: 8285 },   // on a dead flagellant by Hedda's barricade
+    { id: 'greataxe', x: 12330 }, // buried in the Mire, guarded by a butcher
+  ],
 };
 
 // Hand-placed props

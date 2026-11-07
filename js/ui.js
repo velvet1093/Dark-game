@@ -295,12 +295,12 @@ const UI = {
       ['A / D', 'Move'], ['Shift', 'Sprint'], ['Space', 'Roll (invulnerable mid-roll)'],
       ['J  /  Left Click', 'Attack (3-hit chain)'], ['K  /  Right Click', 'Heavy attack'], ['S + Attack', 'Hamstring Cut (cripple)'],
       ['Hold L  /  C', 'Guard  (tap just before a hit to parry)'], ['F', 'Execute a weakened foe'],
-      ['Q  ·  T', 'Drink a vial  ·  drink a tonic'], ['E', 'Interact / rest'], ['M  ·  Esc', 'Mute  ·  pause'],
+      ['Q  ·  T', 'Drink a vial  ·  drink a tonic'], ['X  ·  E', 'Switch weapon  ·  interact'], ['M  ·  Esc', 'Mute  ·  pause'],
     ];
     if (Mobile.enabled) ctl.splice(0, ctl.length,
       ['Left stick', 'Walk  (push to the rim to sprint)'], ['⟳ ROLL', 'Roll — invulnerable mid-roll'], ['⚔ ATTACK', 'Attack (3-hit chain)'],
       ['✦ HEAVY', 'Heavy attack'], ['Stick down + ⚔', 'Hamstring Cut (cripple)'], ['⛨ GUARD', 'Hold to block, tap to parry'],
-      ['☠ EXECUTE', 'Finish a weakened foe'], ['⚱ VIAL', 'Drink a vial'], ['✚ TONIC', 'Purge infection'], ['✋', 'Speak / read / rest'], ['⛶  ❚❚', 'Fullscreen · pause'], ['Tap', 'Continue dialogue']);
+      ['☠ EXECUTE', 'Finish a weakened foe'], ['⚱ VIAL', 'Drink a vial'], ['✚ TONIC  ·  ⇄', 'Purge infection · switch weapon'], ['✋', 'Speak / read / rest'], ['⛶  ❚❚', 'Fullscreen · pause'], ['Tap', 'Continue dialogue']);
     ctl.forEach((c, i) => {
       const col = i < 6 ? 0 : 1;
       const x = col ? W / 2 + 40 : 140, y = 280 + (i % 6) * 29;

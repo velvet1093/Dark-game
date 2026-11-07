@@ -18,13 +18,32 @@ class Player {
     this.embers = 0;
     this.maxFlasks = 3;
     this.weaponId = 'longsword';
-    this.weaponLevel = 0;
+    this.owned = ['longsword'];          // weapons the knight carries
+    this.weaponLevels = { longsword: 0 }; // honing level per weapon
     this.infection = 0; this.turning = false; this.turnT = 0;  // the Red Weeping in the knight's blood
     this.tonics = 1; this.maxTonics = 3;
     this.reset(200);
   }
 
   get weapon() { return WEAPONS[this.weaponId]; }
+  get weaponLevel() { return this.weaponLevels[this.weaponId] || 0; }
+  set weaponLevel(v) { this.weaponLevels[this.weaponId] = v; }
+  get idle() { return this.weapon.idleP || PLAYER_IDLE; }
+
+  giveWeapon(id) {
+    if (!WEAPONS[id] || this.owned.includes(id)) return false;
+    this.owned.push(id); this.weaponLevels[id] = this.weaponLevels[id] || 0;
+    return true;
+  }
+  // cycle to the next weapon carried
+  swapWeapon(g) {
+    if (this.owned.length < 2) { g.toast('You carry only one weapon.', 2); return; }
+    const i = this.owned.indexOf(this.weaponId);
+    this.weaponId = this.owned[(i + 1) % this.owned.length];
+    this.recalc(); this.combo = 0; this.heavyCombo = 0;
+    Sfx.play('clang');
+    g.toast(`${this.weapon.name}${this.weaponLevel ? ' +' + this.weaponLevel : ''} · ${this.weapon.kind}`, 1.6);
+  }
 
   recalc() {
     this.maxHp = 100 + (this.stats.vig - 1) * 14;
@@ -38,7 +57,7 @@ class Player {
     this.hp = this.maxHp; this.st = this.maxSt; this.stDelay = 0;
     this.state = 'idle'; this.t = 0; this.phase = '';
     this.flasks = this.maxFlasks;
-    this.pose = basePose(PLAYER_IDLE);
+    this.pose = basePose(this.idle);
     this.joints = solveRig(this.pose);
     this.rot = 0; this.iframe = false; this.blood = 0;
     this.combo = 0; this.heavyCombo = 0; this.move = null; this.hitSet = new Set();
@@ -86,6 +105,7 @@ class Player {
     switch (s) {
       case 'idle': case 'walk': case 'run': case 'block': {
         if (Input.take('execute')) { const e = g.findExecutable(); if (e) { g.startExecution(e); return; } }
+        if (Input.take('swap')) { this.swapWeapon(g); break; }
         if (Input.take('roll') && this.st > 0) { this.startRoll(dir); break; }
         if (Input.take('light') && this.st > 0) { this.startAttack(Input.down('down') ? 'low' : 'light', dir); break; }
         if (Input.take('heavy') && this.st > 0) { this.startAttack('heavy', dir); break; }
@@ -122,7 +142,7 @@ class Player {
         this.vx = this.facing * 330 * (1 - p * 0.75);
         this.iframe = this.t > 0.03 && this.t < 0.36;
         if (this.t >= dur) { this.state = 'idle'; this.iframe = false; }
-        else if (this.t > dur * 0.75) {
+        else if (this.t > dur * (this.weapon.rollAttack ? 0.3 : 0.75)) { // daggers strike straight out of a roll
           if (Input.take('light', 0.25) && this.st > 0) { this.iframe = false; this.startAttack('light', dir); }
         }
         break;
@@ -185,7 +205,7 @@ class Player {
     else { mv = Wp.heavy[this.heavyCombo % Wp.heavy.length]; this.heavyCombo++; this.combo = 0; }
     if (dir) this.facing = dir;
     this.move = mv; this.state = 'attack'; this.t = 0; this.phase = 'wind';
-    this.hitSet.clear(); this.useSt(mv.stamina);
+    this.hitSet.clear(); this.hitSeg = 0; this.useSt(mv.stamina);
     this.fromPose = Object.assign({}, this.pose);
     this.vx = 0;
   }
@@ -206,6 +226,10 @@ class Player {
         this.phase = 'active';
         Sfx.play(m.heavy ? 'heavySwing' : 'swing');
         this.vx = this.facing * m.lunge;
+      }
+      if (m.hits > 1) { // flurries strike several times in one swing
+        const seg = Math.floor((t - tw) / (ta / m.hits));
+        if (seg !== this.hitSeg) { this.hitSeg = seg; this.hitSet.clear(); if (seg > 0) Sfx.play('swing'); }
       }
       this.checkHits(g);
     } else if (t < tw + ta + tr) {
@@ -237,6 +261,8 @@ class Player {
           heavy: !!m.heavy, targets: m.targets, low: m === this.weapon.low,
         }, this, g);
         if (res === 'blocked') { this.state = 'recoil'; this.t = 0; this.vx = -f * 120; return; }
+        if (m.pin && !e.dead && e.state !== 'executed') { e.vx = f * 330; if (!e.boss) { e.state = 'hurt'; e.st = -0.25; } } // carried along on the point
+        if (m.quake) { FX.dust(e.x, GROUND, 14, 30); Sfx.play('slam'); }
         this.blood = Math.min(1, this.blood + (m.heavy ? 0.25 : 0.14));
         FX.addHitstop(m.heavy ? 0.09 : 0.05);
         FX.addShake(m.heavy ? 6 : 3);
@@ -337,19 +363,23 @@ class Player {
     if (s === 'attack') {
       const m = this.move, t = this.t;
       if (t < m.windup) this.pose = lerpPose(this.fromPose, m.windP, easeOut(t / m.windup));
+      else if (t < m.windup + m.active && m.hits > 1) { // flurry: stab back and forth
+        const k = ((t - m.windup) / (m.active / m.hits)) % 1;
+        this.pose = lerpPose(m.windP, m.strikeP, k < 0.5 ? easeOut(k * 2) : 1 - easeIn((k - 0.5) * 2));
+      }
       else if (t < m.windup + m.active) this.pose = lerpPose(m.windP, m.strikeP, easeOut((t - m.windup) / m.active));
-      else this.pose = lerpPose(m.strikeP, basePose(PLAYER_IDLE), easeInOut(clamp((t - m.windup - m.active) / m.recover, 0, 1)));
+      else this.pose = lerpPose(m.strikeP, basePose(this.idle), easeInOut(clamp((t - m.windup - m.active) / m.recover, 0, 1)));
       return;
     }
     let tgt, k = 1 - Math.exp(-dt * 16);
     switch (s) {
       case 'idle': {
         const b = Math.sin(this.t * 2.2) * 0.03;
-        tgt = Object.assign({}, PLAYER_IDLE, { lean: PLAYER_IDLE.lean + b, armF: PLAYER_IDLE.armF + b, weap: PLAYER_IDLE.weap + b * 0.5 });
+        tgt = Object.assign({}, this.idle, { lean: this.idle.lean + b, armF: this.idle.armF + b, weap: this.idle.weap + b * 0.5 });
         break;
       }
-      case 'walk': tgt = walkPose(PLAYER_IDLE, this.walkPhase, 0.45, 0.05); break;
-      case 'run': tgt = walkPose(Object.assign({}, PLAYER_IDLE, { armF: 0.9, elbowF: 0.6, weap: 1.75 }), this.walkPhase, 0.75, 0.22); break;
+      case 'walk': tgt = walkPose(this.idle, this.walkPhase, 0.45, 0.05); break;
+      case 'run': tgt = walkPose(Object.assign({}, this.idle, this.weapon.idle ? {} : { armF: 0.9, elbowF: 0.6, weap: 1.75 }), this.walkPhase, 0.75, 0.22); break;
       case 'block': {
         const bp = { lean: -0.06, legF: 0.45, kneeF: 0.45, legB: -0.42, kneeB: 0.25, armF: 1.35, elbowF: 1.25, armB: 1.0, elbowB: 1.3, weap: 2.85, head: 0.05 };
         tgt = Math.abs(this.vx) > 1 ? walkPose(bp, this.walkPhase, 0.25, 0) : bp;
@@ -369,7 +399,7 @@ class Player {
       case 'tonic':
       case 'flask': {
         const drinking = this.t > 0.35 && this.t < 0.85;
-        tgt = Object.assign({}, PLAYER_IDLE, { armB: drinking ? 2.4 : 1.2, elbowB: drinking ? 1.9 : 1.3, head: drinking ? -0.35 : 0, lean: drinking ? -0.08 : 0.05 });
+        tgt = Object.assign({}, this.idle, { armB: drinking ? 2.4 : 1.2, elbowB: drinking ? 1.9 : 1.3, head: drinking ? -0.35 : 0, lean: drinking ? -0.08 : 0.05 });
         break;
       }
       case 'dead': {
@@ -380,7 +410,7 @@ class Player {
         k = 1 - Math.exp(-dt * 6);
         break;
       }
-      default: tgt = PLAYER_IDLE;
+      default: tgt = this.idle;
     }
     blendPose(this.pose, tgt, k);
   }
@@ -412,7 +442,7 @@ class Player {
     const kst = this.turning ? Object.assign({}, skin, { visor: '#ff2a1a' }) : skin;
     drawHumanoid(ctx, this.joints, this.pose, kst,
       { head: true, armF: true, armB: true, legF: true, legB: true },
-      { weapon: c => wp.draw(c, blood), t, sway: clamp(this.vx / 240, -1, 1) * this.facing });
+      { weapon: c => wp.draw(c, blood), weapon2: wp.draw2 ? (c => wp.draw2(c, blood)) : null, t, sway: clamp(this.vx / 240, -1, 1) * this.facing });
     if (kst.embers) drawEmberCracks(ctx, this.joints, t);
     ctx.globalAlpha = 1;
     if (this.healGlow > 0) {

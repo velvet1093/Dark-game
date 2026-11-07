@@ -31,7 +31,7 @@ const QUESTS = {
       { kind: 'kill', text: 'Clear the infected from the road', kinds: ['peasant', 'crawler'], count: 3, x0: 2300, x1: 3350, x: 2850 },
       { kind: 'return', text: 'Return to Sergeant Bram', x: 2350 },
     ],
-    reward: { embers: 300 },
+    reward: { embers: 300, weapon: 'spear' },
   },
   hedda: {
     title: 'The Widow at the Barricade', giver: 'hedda',
@@ -116,6 +116,7 @@ const Quests = {
       if (Q.reward.embers) p.embers += Q.reward.embers;
       if (Q.reward.flask) { p.maxFlasks += Q.reward.flask; p.flasks += Q.reward.flask; }
       if (Q.reward.tonics) p.tonics = Math.min(p.maxTonics, p.tonics + Q.reward.tonics);
+      if (Q.reward.weapon) Game.giveWeapon(Q.reward.weapon);
     }
     if (Game.flags.focus === id) Game.flags.focus = null;
     this.notify('QUEST COMPLETE', Q.title, '#e8c070');

@@ -207,7 +207,7 @@ const ALLY_TALK = {
     progress: [{ who: 'Sergeant Bram', text: 'There\'s more of them down the road. Watch the ones on the ground. They\'re not dead, just patient.' }],
     complete: [
       { who: 'Sergeant Bram', text: 'That\'s the last of them. You fight like the old Order, sir.' },
-      { who: 'Sergeant Bram', text: 'Take this. Wages I\'ll never get to spend. (+300 Embers)' },
+      { who: 'Sergeant Bram', text: 'Take these. Wages I\'ll never get to spend, and my old pike. Keep them at the end of it, sir. (+300 Embers, Watchman\'s Pike)' },
     ],
     after: [{ who: 'Sergeant Bram', text: 'I\'ll hold the road now. Go on to Hallowmere. Someone there might still be breathing.' }],
   },

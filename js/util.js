@@ -99,6 +99,7 @@ const Input = {
     roll: ['Space'],
     sprint: ['ShiftLeft', 'ShiftRight'],
     flask: ['KeyQ'],
+    swap: ['KeyX'],
     tonic: ['KeyT', 'KeyR'],
     interact: ['KeyE'],
     execute: ['KeyF'],

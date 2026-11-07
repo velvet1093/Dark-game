@@ -264,6 +264,20 @@ js/ui.js          HUD, menus, dialogue box, title & death screens
 js/game.js        state machine, camera, executions, saving, rendering
 ```
 
+## Weapons
+
+Carry several and switch with **X** (or the ⇄ button on mobile). Garrick hones whichever weapon
+you're holding; each weapon keeps its own level.
+
+| Weapon | Type | Character | Where |
+| --- | --- | --- | --- |
+| Oathkeeper | Longsword | Balanced 3-hit chain, two heavies | You start with it |
+| Barrow Cleaver | Greataxe | Slow two-handed chops; every swing breaks shields and lops off limbs; the heavy shakes the ground | Buried in the Weeping Mire, guarded by a butcher |
+| Watchman's Pike | Spear | Longest reach; thrusts pierce every foe in a line; the charging impale carries them along on the point | Sergeant Bram's reward, or 600 embers from Garrick |
+| Mercy & Malice | Twin Daggers | Very fast 4-hit chain, huge bleed, a 3-stab flurry heavy, and attacks straight out of a roll | On a dead flagellant by Hedda's barricade |
+
+Each has its own idle stance, combo, heavy, low (S + attack) and execution animations.
+
 ## Adding a new weapon (future updates)
 
 Weapons are pure data. To add one, call `registerWeapon({...})` in `js/weapons.js`
